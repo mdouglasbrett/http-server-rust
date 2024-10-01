@@ -12,9 +12,38 @@ fn handle_request(mut stream: TcpStream) -> Result<(), Box<dyn std::error::Error
     let reader = BufReader::new(&stream);
     let mut lines = reader.lines();
     let request_line = lines.next().unwrap()?;
-    match request_line.as_str() {
-        "GET / HTTP/1.1" => {
+    let mut request_parts = request_line.split_whitespace();
+    let method = request_parts.next();
+    let path_split = request_parts
+        .next()
+        .unwrap()
+        .split("/")
+        .filter(|s| !s.is_empty())
+        .collect::<Vec<&str>>();
+    let route = if path_split.len() == 0 {
+        println!("path_split: {:?}", &path_split);
+        "/"
+    } else {
+        println!("path_split: {:?}", &path_split);
+        path_split[0]
+    };
+
+    println!("method {:?}, uri {:?}", method, route);
+
+    match (method, route) {
+        (Some("GET"), "/") => {
             stream.write("HTTP/1.1 200 OK\r\n\r\n".as_bytes())?;
+            Ok(())
+        }
+        (Some("GET"), "echo") => {
+            stream.write(
+                format!(
+                    "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{}",
+                    path_split[1].len(),
+                    path_split[1]
+                )
+                .as_bytes(),
+            )?;
             Ok(())
         }
         _ => {
@@ -34,9 +63,7 @@ fn main() {
 
     for stream in listener.incoming() {
         match stream {
-            Ok(stream) => {
-                handle_request(stream).unwrap()
-            }
+            Ok(stream) => handle_request(stream).unwrap(),
             Err(e) => {
                 println!("error: {}", e);
             }
