@@ -20,15 +20,12 @@ fn handle_request(mut stream: TcpStream) -> Result<(), Box<dyn std::error::Error
         .split("/")
         .filter(|s| !s.is_empty())
         .collect::<Vec<&str>>();
+
     let route = if path_split.len() == 0 {
-        println!("path_split: {:?}", &path_split);
         "/"
     } else {
-        println!("path_split: {:?}", &path_split);
         path_split[0]
     };
-
-    println!("method {:?}, uri {:?}", method, route);
 
     match (method, route) {
         (Some("GET"), "/") => {
