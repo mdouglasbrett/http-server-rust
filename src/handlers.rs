@@ -1,5 +1,6 @@
 use std::io::prelude::Write;
 use std::net::TcpStream;
+use std::sync::Arc;
 
 use crate::request::Request;
 use crate::utils::get_path_parts;
@@ -39,6 +40,10 @@ pub fn handle_user_agent(s: &mut TcpStream, r: &Request) -> Result<(), HandlerEr
         .as_bytes(),
     )?;
     Ok(())
+}
+
+pub fn handle_files(s: &mut TcpStream, r: &Request, fp: Arc<Option<String>>) -> Result<(), HandlerError> {
+    todo!();
 }
 
 pub fn handle_unknown(s: &mut TcpStream) -> Result<(), Box<dyn std::error::Error>> {
