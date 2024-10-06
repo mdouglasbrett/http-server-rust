@@ -40,6 +40,7 @@ fn handle_request(mut stream: TcpStream) -> Result<(), Box<dyn std::error::Error
             stream.write("HTTP/1.1 200 OK\r\n\r\n".as_bytes())?;
             Ok(())
         }
+        // TODO: extract this...
         (Some("GET"), "echo") => {
             let body = path[1];
             let content_length = body.len();
@@ -76,16 +77,14 @@ fn handle_request(mut stream: TcpStream) -> Result<(), Box<dyn std::error::Error
 }
 
 fn main() {
-    // You can use print statements as follows for debugging, they'll be visible when running tests.
-    println!("Logs from your program will appear here!");
-
-    // Uncomment this block to pass the first stage
-
     let listener = TcpListener::bind("127.0.0.1:4221").unwrap();
 
     for stream in listener.incoming() {
         match stream {
-            Ok(stream) => handle_request(stream).unwrap(),
+            Ok(stream) => {
+                // TODO: naive!!
+                std::thread::spawn(move || handle_request(stream).unwrap());
+            },
             Err(e) => {
                 println!("error: {}", e);
             }
