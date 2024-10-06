@@ -15,7 +15,7 @@ pub fn request_router(mut stream: TcpStream) -> Result<(), Box<dyn std::error::E
     let reader = BufReader::new(&stream);
     let req = Request::try_from(reader)?;
 
-    match (req.method, req.route) {
+    match (&req.method, &req.route) {
         (Method::Get, Route::Empty) => handle_empty(&mut stream),
         (Method::Get, Route::Echo) => handle_echo(&mut stream, &req),
         (Method::Get, Route::UserAgent) => handle_user_agent(&mut stream, &req),

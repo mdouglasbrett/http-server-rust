@@ -4,6 +4,8 @@ use std::{
     net::TcpStream,
 };
 
+use crate::utils::get_path_parts;
+
 pub enum Route {
     Empty,
     Echo,
