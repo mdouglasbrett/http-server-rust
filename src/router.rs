@@ -1,11 +1,15 @@
-use std::{io::BufReader, net::TcpStream, sync::Arc};
+use std::{
+    io::BufReader,
+    net::TcpStream,
+    sync::{Arc, Mutex},
+};
 
 use crate::handlers::{handle_echo, handle_empty, handle_files, handle_unknown, handle_user_agent};
 use crate::request::{Method, Request, Route};
 
 pub fn request_router(
     mut stream: TcpStream,
-    file_path: Arc<Option<String>>,
+    file_path: Arc<Mutex<Option<String>>>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let reader = BufReader::new(&stream);
     let req = Request::try_from(reader)?;

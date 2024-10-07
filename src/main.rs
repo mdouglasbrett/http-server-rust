@@ -1,6 +1,6 @@
 use std::env;
 use std::net::TcpListener;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 pub mod handlers;
 pub mod request;
@@ -11,8 +11,12 @@ use crate::router::request_router;
 
 fn main() {
     let mut args = env::args();
+    // TODO: I will most likely just use clap here when I'm cleaning up...
+    // program name
     let _ = args.next();
-    let partial_file_path = Arc::new(args.next());
+    // --directory flag
+    let _ = args.next();
+    let partial_file_path = Arc::new(Mutex::new(args.next()));
     let listener = TcpListener::bind("127.0.0.1:4221").unwrap();
 
     for stream in listener.incoming() {
