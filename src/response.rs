@@ -1,4 +1,5 @@
 pub enum Status {
     Ok,
-    NotFound
+    NotFound,
+    Created
 }
