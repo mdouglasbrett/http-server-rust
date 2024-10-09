@@ -48,6 +48,7 @@ pub struct Request {
     pub route: Route,
     pub path: String,
     pub headers: HashMap<String, String>,
+    pub body: String,
 }
 
 impl TryFrom<BufReader<&TcpStream>> for Request {
@@ -90,11 +91,21 @@ impl TryFrom<BufReader<&TcpStream>> for Request {
             let _ = headers.insert(key.to_owned(), value.to_owned());
         }
 
+        let mut body_buf = String::new();
+
+        if let Some(body_line) = lines.next() {
+            if body_line.is_ok() {
+                let len = headers.get("Content-Length").unwrap().parse::<u64>().unwrap();
+                body_line.unwrap().as_bytes().take(len).read_to_string(&mut body_buf);
+            }
+        }
+
         Ok(Self {
             route,
             path,
             method,
             headers,
+            body: body_buf,
         })
     }
 }
