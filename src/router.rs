@@ -4,8 +4,10 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use crate::handlers::{handle_echo, handle_empty, handle_get_file, handle_unknown, handle_user_agent, handle_post_file};
-use crate::request::{Method, Request, Route};
+use crate::handlers::{
+    handle_echo, handle_empty, handle_get_file, handle_post_file, handle_unknown, handle_user_agent,
+};
+use crate::frame::{Method, Request, Route};
 
 pub fn request_router(
     mut stream: TcpStream,

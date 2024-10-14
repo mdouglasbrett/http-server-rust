@@ -1,5 +1,5 @@
 use std::io::prelude::Write;
-use std::net::TcpStream;
+use std::net::{Shutdown, TcpStream};
 use std::sync::{Arc, Mutex};
 
 use crate::request::Request;

@@ -48,14 +48,14 @@ pub struct Request {
     pub route: Route,
     pub path: String,
     pub headers: HashMap<String, String>,
-    pub body: String,
+    pub body: [u8; 5],
 }
 
 impl TryFrom<BufReader<&TcpStream>> for Request {
     type Error = String;
-    fn try_from(value: BufReader<&TcpStream>) -> Result<Self, Self::Error> {
+    fn try_from(mut value: BufReader<&TcpStream>) -> Result<Self, Self::Error> {
         let err = "Couldn't get next line";
-        let mut lines = value.lines();
+        let mut lines = value.by_ref().lines();
         let start_line = match lines.next() {
             Some(Ok(s)) => s,
             _ => {
@@ -91,12 +91,26 @@ impl TryFrom<BufReader<&TcpStream>> for Request {
             let _ = headers.insert(key.to_owned(), value.to_owned());
         }
 
-        let mut body_buf = String::new();
+        let mut body_buf = [0u8; 5];
+
+        let stream_split = value.by_ref().split_terminator("\r\n\r\n");
+
+        println!("stream_split: {:?}", stream_split)
 
         if let Some(body_line) = lines.next() {
             if body_line.is_ok() {
-                let len = headers.get("Content-Length").unwrap().parse::<u64>().unwrap();
-                body_line.unwrap().as_bytes().take(len).read_to_string(&mut body_buf);
+                let len = headers
+                    .get("Content-Length")
+                    .unwrap()
+                    .parse::<u64>()
+                    .unwrap();
+                // TODO: really need to deal with these better...
+                body_line
+                    .unwrap()
+                    .as_bytes()
+                    .take(len)
+                    .read(&mut body_buf)
+                    .unwrap();
             }
         }
 
@@ -108,4 +122,11 @@ impl TryFrom<BufReader<&TcpStream>> for Request {
             body: body_buf,
         })
     }
+}
+
+
+pub enum Status {
+    Ok,
+    NotFound,
+    Created
 }
