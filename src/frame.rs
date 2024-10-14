@@ -1,7 +1,7 @@
 use std::{
     collections::HashMap,
     io::{prelude::*, BufReader},
-    net::TcpStream,
+    net::{Shutdown, TcpStream},
 };
 
 use crate::utils::get_path_parts;
@@ -48,20 +48,17 @@ pub struct Request {
     pub route: Route,
     pub path: String,
     pub headers: HashMap<String, String>,
-    pub body: [u8; 5],
+    pub body: Vec<u8>,
 }
 
-impl TryFrom<BufReader<&TcpStream>> for Request {
+impl TryFrom<&TcpStream> for Request {
     type Error = String;
-    fn try_from(mut value: BufReader<&TcpStream>) -> Result<Self, Self::Error> {
+    fn try_from(value: &TcpStream) -> Result<Self, Self::Error> {
         let err = "Couldn't get next line";
-        let mut lines = value.by_ref().lines();
-        let start_line = match lines.next() {
-            Some(Ok(s)) => s,
-            _ => {
-                return Err(err.to_owned());
-            }
-        };
+        let mut buf = BufReader::new(value);
+        let mut start_line = String::new();
+        // TODO: there is an error here
+        buf.read_line(&mut start_line);
         let mut start_parts = start_line.split_whitespace();
         let method = Method::from(start_parts.next());
         let path = match start_parts.next() {
@@ -80,38 +77,34 @@ impl TryFrom<BufReader<&TcpStream>> for Request {
 
         let mut headers = HashMap::new();
 
-        while let Some(Ok(header_line)) = lines.next() {
-            let key_value = header_line.split_terminator(":").collect::<Vec<&str>>();
-            if key_value.is_empty() {
+        // Do this in a loop rather than use the iterator...
+
+        loop {
+            let mut header_line = String::new();
+            buf.read_line(&mut header_line);
+            let trimmed_header_line = header_line.trim();
+            println!("header_line: {:?}", &header_line);
+            if trimmed_header_line.is_empty() {
                 // I think we have reached the body at this point
                 break;
             }
+            let key_value = trimmed_header_line
+                .split_terminator(":")
+                .collect::<Vec<&str>>();
             let key = key_value[0];
             let value = key_value[1].trim();
             let _ = headers.insert(key.to_owned(), value.to_owned());
         }
 
-        let mut body_buf = [0u8; 5];
+        let mut body_buf: Vec<u8> = vec![];
 
-        let stream_split = value.by_ref().split_terminator("\r\n\r\n");
+        // If there's no content length, do not attempt to parse the body
+        if let Some(len) = headers.get("Content-Length") {
+            let len = len.parse::<u64>().unwrap();
 
-        println!("stream_split: {:?}", stream_split)
+            buf.take(len).read_to_end(&mut body_buf);
 
-        if let Some(body_line) = lines.next() {
-            if body_line.is_ok() {
-                let len = headers
-                    .get("Content-Length")
-                    .unwrap()
-                    .parse::<u64>()
-                    .unwrap();
-                // TODO: really need to deal with these better...
-                body_line
-                    .unwrap()
-                    .as_bytes()
-                    .take(len)
-                    .read(&mut body_buf)
-                    .unwrap();
-            }
+            println!("body_buf after read: {:?}", &body_buf);
         }
 
         Ok(Self {
@@ -124,9 +117,8 @@ impl TryFrom<BufReader<&TcpStream>> for Request {
     }
 }
 
-
 pub enum Status {
     Ok,
     NotFound,
-    Created
+    Created,
 }

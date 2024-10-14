@@ -1,5 +1,4 @@
 use std::{
-    io::BufReader,
     net::TcpStream,
     sync::{Arc, Mutex},
 };
@@ -13,8 +12,7 @@ pub fn request_router(
     mut stream: TcpStream,
     file_path: Arc<Mutex<Option<String>>>,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let reader = BufReader::new(&stream);
-    let req = Request::try_from(reader)?;
+    let req = Request::try_from(&stream)?;
 
     match (&req.method, &req.route) {
         (Method::Get, Route::Empty) => handle_empty(&mut stream),
