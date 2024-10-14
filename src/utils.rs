@@ -3,8 +3,6 @@ use std::io::Write;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 
-use anyhow::anyhow;
-
 use crate::frame::{Request, Status};
 
 pub fn get_path_parts(s: &str) -> Vec<&str> {
@@ -32,15 +30,15 @@ pub fn write_file(
     let path_inner = fp.lock().unwrap().clone().unwrap();
     let path = Path::new(&path_inner);
     let file_path = path.join(filename);
-    println!("Path: {:?}", &path);
-    if fs::create_dir(path).is_ok() {
-        println!("dir has been created");
-        fs::File::create(file_path)
-            .unwrap()
-            .write_all(req.body.as_slice())?;
+    if Path::try_exists(&file_path).unwrap() {
+        fs::write(&file_path, &req.body)?;
         Ok(())
     } else {
-        Err(anyhow!("Something went wrong"))
+        let mut file = fs::File::create(file_path).unwrap();
+        println!("file: {:?}", &file);
+        println!("body: {:?}", &req.body);
+        file.write_all(&req.body)?;
+        Ok(())
     }
 }
 

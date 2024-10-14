@@ -1,10 +1,9 @@
 use std::io::prelude::Write;
-use std::net::{Shutdown, TcpStream};
+use std::net::TcpStream;
 use std::sync::{Arc, Mutex};
 
-use crate::request::Request;
-use crate::response::Status;
-use crate::utils::{write_file, get_file_contents, get_path_parts, get_response};
+use crate::frame::{Request, Status};
+use crate::utils::{get_file_contents, get_path_parts, get_response, write_file};
 
 // TODO: make more meaningful errors!!
 type HandlerError = Box<dyn std::error::Error>;
@@ -49,7 +48,7 @@ pub fn handle_get_file(
         let body = contents.unwrap();
         s.write_all(&get_response(
             Status::Ok,
-            Some((body, "application/octet".to_owned())),
+            Some((body, "application/octet-stream".to_owned())),
         ))?;
         Ok(())
     }
