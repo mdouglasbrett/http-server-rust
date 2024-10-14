@@ -35,13 +35,12 @@ pub fn write_file(
         Ok(())
     } else {
         let mut file = fs::File::create(file_path).unwrap();
-        println!("file: {:?}", &file);
-        println!("body: {:?}", &req.body);
         file.write_all(&req.body)?;
         Ok(())
     }
 }
 
+// TODO: this should be on the Response type 
 pub fn get_response(status: Status, body: Option<(String, String)>) -> Vec<u8> {
     match status {
         Status::NotFound => "HTTP/1.1 404 Not Found\r\n\r\n".as_bytes().to_vec(),

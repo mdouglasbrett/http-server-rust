@@ -6,7 +6,9 @@ use std::{
 use crate::handlers::{
     handle_echo, handle_empty, handle_get_file, handle_post_file, handle_unknown, handle_user_agent,
 };
-use crate::frame::{Method, Request, Route};
+// TODO: is this the right structure?
+use crate::frame::{Method, Request};
+use crate::routes::Route;
 
 pub fn request_router(
     mut stream: TcpStream,

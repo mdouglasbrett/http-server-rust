@@ -5,26 +5,7 @@ use std::{
 };
 
 use crate::utils::get_path_parts;
-
-pub enum Route {
-    Empty,
-    Echo,
-    UserAgent,
-    Files,
-    Unknown,
-}
-
-impl From<&str> for Route {
-    fn from(s: &str) -> Self {
-        match s {
-            "echo" => Self::Echo,
-            "user-agent" => Self::UserAgent,
-            "files" => Self::Files,
-            "/" => Self::Empty,
-            _ => Self::Unknown,
-        }
-    }
-}
+use crate::routes::Route;
 
 pub enum Method {
     Get,
@@ -51,13 +32,13 @@ pub struct Request {
     pub body: Vec<u8>,
 }
 
+// TODO: error handling
 impl TryFrom<&TcpStream> for Request {
     type Error = String;
     fn try_from(value: &TcpStream) -> Result<Self, Self::Error> {
         let err = "Couldn't get next line";
         let mut buf = BufReader::new(value);
         let mut start_line = String::new();
-        // TODO: there is an error here
         buf.read_line(&mut start_line);
         let mut start_parts = start_line.split_whitespace();
         let method = Method::from(start_parts.next());
@@ -83,7 +64,6 @@ impl TryFrom<&TcpStream> for Request {
             let mut header_line = String::new();
             buf.read_line(&mut header_line);
             let trimmed_header_line = header_line.trim();
-            println!("header_line: {:?}", &header_line);
             if trimmed_header_line.is_empty() {
                 // I think we have reached the body at this point
                 break;
@@ -101,10 +81,7 @@ impl TryFrom<&TcpStream> for Request {
         // If there's no content length, do not attempt to parse the body
         if let Some(len) = headers.get("Content-Length") {
             let len = len.parse::<u64>().unwrap();
-
             buf.take(len).read_to_end(&mut body_buf);
-
-            println!("body_buf after read: {:?}", &body_buf);
         }
 
         Ok(Self {
