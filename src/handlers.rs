@@ -2,6 +2,7 @@ use std::io::prelude::Write;
 use std::net::TcpStream;
 use std::sync::{Arc, Mutex};
 
+// TODO: Response ought to be a type, get_response is the wrong abstraction here
 use crate::frame::{Request, Status};
 use crate::utils::{get_file_contents, get_path_parts, get_response, write_file};
 

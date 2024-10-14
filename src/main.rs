@@ -4,6 +4,7 @@ use std::sync::{Arc, Mutex};
 
 pub mod handlers;
 pub mod frame;
+pub mod routes;
 pub mod router;
 pub mod utils;
 
