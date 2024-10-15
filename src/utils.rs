@@ -3,7 +3,7 @@ use std::io::Write;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 
-use crate::frame::Request;
+use crate::http::Request;
 
 pub fn get_path_parts(s: &str) -> Vec<&str> {
     s.split("/")

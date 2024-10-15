@@ -2,7 +2,7 @@ use std::io::prelude::Write;
 use std::net::TcpStream;
 use std::sync::{Arc, Mutex};
 
-use crate::frame::{Request, Response};
+use crate::http::{Request, Response};
 use crate::utils::{get_path_parts, read_file, write_file};
 
 // TODO: make more meaningful errors!!

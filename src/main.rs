@@ -3,7 +3,7 @@ use std::net::TcpListener;
 use std::sync::{Arc, Mutex};
 
 pub mod handlers;
-pub mod frame;
+pub mod http;
 pub mod routes;
 pub mod router;
 pub mod utils;
