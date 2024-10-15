@@ -30,6 +30,8 @@ pub struct Request {
     pub method: Method,
     pub route: Route,
     pub path: String,
+    // TODO: This may not be the best data structure - might need to get a little
+    // nuanced with this - should I handle the content encoding here, or later?
     pub headers: HashMap<String, String>,
     pub body: Vec<u8>,
 }
