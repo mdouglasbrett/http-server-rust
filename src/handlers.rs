@@ -2,24 +2,20 @@ use std::io::prelude::Write;
 use std::net::TcpStream;
 use std::sync::{Arc, Mutex};
 
-// TODO: Response ought to be a type, get_response is the wrong abstraction here
-use crate::frame::{Request, Status};
-use crate::utils::{get_file_contents, get_path_parts, get_response, write_file};
+use crate::frame::{Request, Response};
+use crate::utils::{get_path_parts, read_file, write_file};
 
 // TODO: make more meaningful errors!!
 type HandlerError = Box<dyn std::error::Error>;
 
 pub fn handle_empty(s: &mut TcpStream) -> Result<(), HandlerError> {
-    s.write_all(&get_response(Status::Ok, None))?;
+    s.write_all(&Response::Ok(None).to_vec())?;
     Ok(())
 }
 
 pub fn handle_echo(s: &mut TcpStream, r: &Request) -> Result<(), HandlerError> {
     let body = get_path_parts(r.path.as_str())[1];
-    s.write_all(&get_response(
-        Status::Ok,
-        Some((body.to_owned(), "text/plain".to_owned())),
-    ))?;
+    s.write_all(&Response::Ok(Some((body.to_owned(), "text/plain".to_owned()))).to_vec())?;
     Ok(())
 }
 
@@ -29,10 +25,7 @@ pub fn handle_user_agent(s: &mut TcpStream, r: &Request) -> Result<(), HandlerEr
         .get("User-Agent")
         .unwrap_or(&String::from(""))
         .to_owned();
-    s.write_all(&get_response(
-        Status::Ok,
-        Some((body, "text/plain".to_owned())),
-    ))?;
+    s.write_all(&Response::Ok(Some((body, "text/plain".to_owned()))).to_vec())?;
     Ok(())
 }
 
@@ -42,15 +35,19 @@ pub fn handle_get_file(
     fp: Arc<Mutex<Option<String>>>,
 ) -> Result<(), HandlerError> {
     let filename = get_path_parts(&r.path)[1];
-    let contents = get_file_contents(fp, filename);
+    let contents = read_file(fp, filename);
     if contents.is_none() {
         handle_unknown(s)
     } else {
-        let body = contents.unwrap();
-        s.write_all(&get_response(
-            Status::Ok,
-            Some((body, "application/octet-stream".to_owned())),
-        ))?;
+        if contents.is_some() {
+            s.write_all(
+                &Response::Ok(Some((
+                    contents.unwrap(),
+                    "application/octet-stream".to_owned(),
+                )))
+                .to_vec(),
+            )?;
+        }
         Ok(())
     }
 }
@@ -62,11 +59,11 @@ pub fn handle_post_file(
 ) -> Result<(), HandlerError> {
     let filename = get_path_parts(&r.path)[1];
     write_file(fp, filename, r)?;
-    s.write_all(&get_response(Status::Created, None))?;
+    s.write_all(&Response::Created.to_vec())?;
     Ok(())
 }
 
 pub fn handle_unknown(s: &mut TcpStream) -> Result<(), Box<dyn std::error::Error>> {
-    s.write_all(&get_response(Status::NotFound, None))?;
+    s.write_all(&Response::NotFound.to_vec())?;
     Ok(())
 }

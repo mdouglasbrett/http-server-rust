@@ -1,11 +1,13 @@
 use std::{
     collections::HashMap,
     io::{prelude::*, BufReader},
-    net::TcpStream,
+    net::TcpStream, u8,
 };
 
-use crate::utils::get_path_parts;
+use anyhow::anyhow;
+
 use crate::routes::Route;
+use crate::utils::get_path_parts;
 
 pub enum Method {
     Get,
@@ -34,9 +36,8 @@ pub struct Request {
 
 // TODO: error handling
 impl TryFrom<&TcpStream> for Request {
-    type Error = String;
+    type Error = anyhow::Error;
     fn try_from(value: &TcpStream) -> Result<Self, Self::Error> {
-        let err = "Couldn't get next line";
         let mut buf = BufReader::new(value);
         let mut start_line = String::new();
         buf.read_line(&mut start_line);
@@ -45,7 +46,7 @@ impl TryFrom<&TcpStream> for Request {
         let path = match start_parts.next() {
             Some(s) => s.to_owned(),
             _ => {
-                return Err(err.to_owned());
+                return Err(anyhow!("TODO: real errors"));
             }
         };
         let path_parts = get_path_parts(path.as_str());
@@ -57,8 +58,6 @@ impl TryFrom<&TcpStream> for Request {
         };
 
         let mut headers = HashMap::new();
-
-        // Do this in a loop rather than use the iterator...
 
         loop {
             let mut header_line = String::new();
@@ -80,8 +79,9 @@ impl TryFrom<&TcpStream> for Request {
 
         // If there's no content length, do not attempt to parse the body
         if let Some(len) = headers.get("Content-Length") {
-            let len = len.parse::<u64>().unwrap();
-            buf.take(len).read_to_end(&mut body_buf);
+            if let Ok(len) = len.parse::<u64>() {
+                buf.take(len).read_to_end(&mut body_buf)?;
+            }
         }
 
         Ok(Self {
@@ -94,8 +94,29 @@ impl TryFrom<&TcpStream> for Request {
     }
 }
 
-pub enum Status {
-    Ok,
+pub enum Response {
+    Ok(Option<(String, String)>),
     NotFound,
     Created,
+}
+
+impl Response {
+     pub fn to_vec(&self) -> Vec<u8> {
+        match self {
+            Response::Ok(Some((body, mime))) => format!(
+                    "HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n{}",
+                    mime,
+                    body.len(),
+                    body
+                )
+                .as_bytes().to_vec()
+            ,
+            Response::Ok(None) => "HTTP/1.1 200 OK\r\n\r\n".as_bytes().to_vec(),
+            Response::NotFound => 
+                "HTTP/1.1 404 Not Found\r\n\r\n".as_bytes().to_vec(),
+            Response::Created => "HTTP/1.1 201 Created\r\n\r\n".as_bytes().to_vec()
+            
+        }
+
+    }
 }
