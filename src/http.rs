@@ -95,28 +95,31 @@ impl TryFrom<&TcpStream> for Request {
 }
 
 pub enum Response {
-    Ok(Option<(String, String)>),
+    Ok(Option<(String, String, Option<String>)>),
     NotFound,
     Created,
 }
 
 impl Response {
-     pub fn to_vec(&self) -> Vec<u8> {
+    pub fn to_vec(&self) -> Vec<u8> {
         match self {
-            Response::Ok(Some((body, mime))) => format!(
-                    "HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n{}",
-                    mime,
-                    body.len(),
-                    body
-                )
-                .as_bytes().to_vec()
-            ,
+            Response::Ok(Some((body, mime, encoding))) => {
+                format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\n{content_encoding}\r\n{}",
+                mime,
+                body.len(),
+                body,
+                content_encoding = match encoding { 
+                    Some(e) => format!("Content-Encoding: {}\r\n", e),
+                    None => "".to_owned()
+                },
+            )
+            .as_bytes()
+            .to_vec()
+            },
             Response::Ok(None) => "HTTP/1.1 200 OK\r\n\r\n".as_bytes().to_vec(),
-            Response::NotFound => 
-                "HTTP/1.1 404 Not Found\r\n\r\n".as_bytes().to_vec(),
-            Response::Created => "HTTP/1.1 201 Created\r\n\r\n".as_bytes().to_vec()
-            
+            Response::NotFound => "HTTP/1.1 404 Not Found\r\n\r\n".as_bytes().to_vec(),
+            Response::Created => "HTTP/1.1 201 Created\r\n\r\n".as_bytes().to_vec(),
         }
-
     }
 }

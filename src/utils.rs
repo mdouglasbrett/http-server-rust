@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fs;
 use std::io::Write;
 use std::path::Path;
@@ -9,6 +10,19 @@ pub fn get_path_parts(s: &str) -> Vec<&str> {
     s.split("/")
         .filter(|s| !s.is_empty())
         .collect::<Vec<&str>>()
+}
+
+pub fn get_encoding(headers: &HashMap<String, String>) -> Option<String> {
+    match headers.get("Accept-Encoding") {
+        Some(e) => {
+            if e.as_str() == "gzip" {
+                Some(e.to_owned())
+            } else {
+                None
+            }
+        }
+        None => None,
+    }
 }
 
 pub fn read_file(fp: Arc<Mutex<Option<String>>>, filename: &str) -> Option<String> {

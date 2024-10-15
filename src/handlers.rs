@@ -3,7 +3,7 @@ use std::net::TcpStream;
 use std::sync::{Arc, Mutex};
 
 use crate::http::{Request, Response};
-use crate::utils::{get_path_parts, read_file, write_file};
+use crate::utils::{get_encoding, get_path_parts, read_file, write_file};
 
 // TODO: make more meaningful errors!!
 type HandlerError = Box<dyn std::error::Error>;
@@ -14,8 +14,11 @@ pub fn handle_empty(s: &mut TcpStream) -> Result<(), HandlerError> {
 }
 
 pub fn handle_echo(s: &mut TcpStream, r: &Request) -> Result<(), HandlerError> {
+    let encoding = get_encoding(&r.headers);
     let body = get_path_parts(r.path.as_str())[1];
-    s.write_all(&Response::Ok(Some((body.to_owned(), "text/plain".to_owned()))).to_vec())?;
+    s.write_all(
+        &Response::Ok(Some((body.to_owned(), "text/plain".to_owned(), encoding))).to_vec(),
+    )?;
     Ok(())
 }
 
@@ -25,7 +28,8 @@ pub fn handle_user_agent(s: &mut TcpStream, r: &Request) -> Result<(), HandlerEr
         .get("User-Agent")
         .unwrap_or(&String::from(""))
         .to_owned();
-    s.write_all(&Response::Ok(Some((body, "text/plain".to_owned()))).to_vec())?;
+    let encoding = get_encoding(&r.headers);
+    s.write_all(&Response::Ok(Some((body, "text/plain".to_owned(), encoding))).to_vec())?;
     Ok(())
 }
 
@@ -36,6 +40,7 @@ pub fn handle_get_file(
 ) -> Result<(), HandlerError> {
     let filename = get_path_parts(&r.path)[1];
     let contents = read_file(fp, filename);
+    let encoding = get_encoding(&r.headers);
     if contents.is_none() {
         handle_unknown(s)
     } else {
@@ -44,6 +49,7 @@ pub fn handle_get_file(
                 &Response::Ok(Some((
                     contents.unwrap(),
                     "application/octet-stream".to_owned(),
+                    encoding,
                 )))
                 .to_vec(),
             )?;
