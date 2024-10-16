@@ -6,6 +6,8 @@ use std::{
 
 use anyhow::anyhow;
 
+use flate2::{write::GzEncoder, Compression};
+
 use crate::routes::Route;
 use crate::utils::get_path_parts;
 
@@ -125,22 +127,41 @@ pub enum Response {
     Created,
 }
 
+// TODO: this could error out
 impl Response {
     pub fn to_vec(&self) -> Vec<u8> {
         match self {
             Response::Ok(Some((body, mime, encoding))) => {
-                format!(
-                "HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\n{content_encoding}\r\n{}",
-                mime,
-                body.len(),
-                body,
+                let content = if encoding.is_some() { 
+                    let mut b = GzEncoder::new(Vec::new(), Compression::default());
+                    // TODO: handle errors
+                    let _ = b.write_all(body.as_bytes());
+                    let compressed_body = b.finish();
+                    if compressed_body.is_ok() {
+                    let s = compressed_body.unwrap();
+                    s 
+                    } else {
+                        todo!()
+                    }
+                } else { body.as_bytes().to_vec() };
+                let mut response = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: {content_type}\r\nContent-Length: {content_length}\r\n{content_encoding}\r\n",
+                content_type = mime,
                 content_encoding = match encoding { 
                     Some(e) => format!("Content-Encoding: {}\r\n", e),
                     None => "".to_owned()
                 },
+                content_length = content.len(),
+
             )
             .as_bytes()
-            .to_vec()
+            .to_vec();
+                if !content.is_empty() {
+                    response.extend_from_slice(&content);
+                }
+
+                response
+
             },
             Response::Ok(None) => "HTTP/1.1 200 OK\r\n\r\n".as_bytes().to_vec(),
             Response::NotFound => "HTTP/1.1 404 Not Found\r\n\r\n".as_bytes().to_vec(),
