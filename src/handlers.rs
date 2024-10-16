@@ -2,8 +2,10 @@ use std::io::prelude::Write;
 use std::net::TcpStream;
 use std::sync::{Arc, Mutex};
 
+use anyhow::anyhow;
+
 use crate::http::{Request, Response};
-use crate::utils::{get_encoding, get_path_parts, read_file, write_file};
+use crate::utils::{get_header_value, get_path_parts, read_file, write_file};
 
 // TODO: make more meaningful errors!!
 type HandlerError = Box<dyn std::error::Error>;
@@ -14,7 +16,7 @@ pub fn handle_empty(s: &mut TcpStream) -> Result<(), HandlerError> {
 }
 
 pub fn handle_echo(s: &mut TcpStream, r: &Request) -> Result<(), HandlerError> {
-    let encoding = get_encoding(&r.headers);
+    let encoding = get_header_value("Accept-Encoding", &r.headers);
     let body = get_path_parts(r.path.as_str())[1];
     s.write_all(
         &Response::Ok(Some((body.to_owned(), "text/plain".to_owned(), encoding))).to_vec(),
@@ -23,13 +25,16 @@ pub fn handle_echo(s: &mut TcpStream, r: &Request) -> Result<(), HandlerError> {
 }
 
 pub fn handle_user_agent(s: &mut TcpStream, r: &Request) -> Result<(), HandlerError> {
-    let body = r
-        .headers
-        .get("User-Agent")
-        .unwrap_or(&String::from(""))
-        .to_owned();
-    let encoding = get_encoding(&r.headers);
-    s.write_all(&Response::Ok(Some((body, "text/plain".to_owned(), encoding))).to_vec())?;
+    let body = get_header_value("User-Agent", &r.headers);
+    let encoding = get_header_value("Accept-Encoding", &r.headers);
+    if body.is_none() {
+        // TODO: errors!!
+        return Err(anyhow!("No User-Agent in headers").into());
+    } else {
+        s.write_all(
+            &Response::Ok(Some((body.unwrap(), "text/plain".to_owned(), encoding))).to_vec(),
+        )?;
+    }
     Ok(())
 }
 
@@ -40,20 +45,18 @@ pub fn handle_get_file(
 ) -> Result<(), HandlerError> {
     let filename = get_path_parts(&r.path)[1];
     let contents = read_file(fp, filename);
-    let encoding = get_encoding(&r.headers);
+    let encoding = get_header_value("Accept-Encoding", &r.headers);
     if contents.is_none() {
         handle_unknown(s)
     } else {
-        if contents.is_some() {
-            s.write_all(
-                &Response::Ok(Some((
-                    contents.unwrap(),
-                    "application/octet-stream".to_owned(),
-                    encoding,
-                )))
-                .to_vec(),
-            )?;
-        }
+        s.write_all(
+            &Response::Ok(Some((
+                contents.unwrap(),
+                "application/octet-stream".to_owned(),
+                encoding,
+            )))
+            .to_vec(),
+        )?;
         Ok(())
     }
 }
@@ -64,7 +67,12 @@ pub fn handle_post_file(
     fp: Arc<Mutex<Option<String>>>,
 ) -> Result<(), HandlerError> {
     let filename = get_path_parts(&r.path)[1];
-    write_file(fp, filename, r)?;
+    if !r.body.is_empty() {
+        write_file(fp, filename, r)?;
+    } else {
+        // TODO: Errors
+        return Err(anyhow!("Empty body").into());
+    };
     s.write_all(&Response::Created.to_vec())?;
     Ok(())
 }

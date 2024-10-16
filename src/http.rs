@@ -25,14 +25,21 @@ impl From<Option<&str>> for Method {
     }
 }
 
+// TODO: this is a temporary solution
+#[derive(Debug)]
+pub enum HeaderField {
+    Single(String),
+    Multiple(Vec<String>)
+}
+
 pub struct Request {
     // TODO: avoiding lifetimes, stop doing this!!
     pub method: Method,
     pub route: Route,
     pub path: String,
-    // TODO: This may not be the best data structure - might need to get a little
-    // nuanced with this - should I handle the content encoding here, or later?
-    pub headers: HashMap<String, String>,
+    // TODO: This may not be the best data structure - 
+    // should I handle the content encoding here, or later?
+    pub headers: HashMap<String, HeaderField>,
     pub body: Vec<u8>,
 }
 
@@ -73,17 +80,33 @@ impl TryFrom<&TcpStream> for Request {
                 .split_terminator(":")
                 .collect::<Vec<&str>>();
             let key = key_value[0];
-            let value = key_value[1].trim();
-            let _ = headers.insert(key.to_owned(), value.to_owned());
+            let raw_value = key_value[1].trim();
+            let value = if key == "Accept-Encoding" {
+                HeaderField::Multiple(
+                    raw_value
+                    .split(", ")
+                    .map(|s| s.to_owned())
+                    .collect()
+                    )
+            } else {
+                HeaderField::Single(raw_value.to_owned())
+            };
+            let _ = headers.insert(key.to_owned(), value);
         }
 
         let mut body_buf: Vec<u8> = vec![];
 
         // If there's no content length, do not attempt to parse the body
         if let Some(len) = headers.get("Content-Length") {
-            if let Ok(len) = len.parse::<u64>() {
-                buf.take(len).read_to_end(&mut body_buf)?;
-            }
+                match len {
+                    HeaderField::Single(len) => {
+                        let len = len.parse::<u64>()?;
+                        buf.take(len).read_to_end(&mut body_buf)?;
+                    },
+                    HeaderField::Multiple(_) => {
+                        return Err(anyhow!("Len parsing"));
+                    }
+                }
         }
 
         Ok(Self {
