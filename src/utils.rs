@@ -25,31 +25,22 @@ pub fn get_header_value(val: &str, headers: &HashMap<String, HeaderField>) -> Op
                 None
             }
         }
-        "Accept-Encoding" => {
-            match header_val {
-                Some(e) => match e {
-                    HeaderField::Multiple(v) => {
-                        let filtered_encodings = v
-                            .iter()
-                            .filter(|e| e.as_str() == ALLOWED_ENCODING)
-                            .collect::<Vec<&String>>();
-                        if filtered_encodings.is_empty() {
-                            None
-                        } else {
-                            Some(filtered_encodings[0].to_owned())
-                        }
+        "Accept-Encoding" => match header_val {
+            Some(HeaderField::Multiple(v)) => {
+                    let filtered_encodings = v
+                        .iter()
+                        .filter(|e| e.as_str() == ALLOWED_ENCODING)
+                        .collect::<Vec<&String>>();
+                    if filtered_encodings.is_empty() {
+                        None
+                    } else {
+                        Some(filtered_encodings[0].to_owned())
                     }
-                    _ => None,
-                },
-                None => None,
-            }
-        }
+            },
+            _ => None,
+        },
         _ => None,
     }
-}
-
-pub fn get_encoding(headers: &HashMap<String, HeaderField>) -> Option<String> {
-    None
 }
 
 pub fn read_file(fp: Arc<Mutex<Option<String>>>, filename: &str) -> Option<String> {

@@ -31,7 +31,7 @@ impl From<Option<&str>> for Method {
 #[derive(Debug)]
 pub enum HeaderField {
     Single(String),
-    Multiple(Vec<String>)
+    Multiple(Vec<String>),
 }
 
 pub struct Request {
@@ -82,12 +82,7 @@ impl TryFrom<&TcpStream> for Request {
             let key = key_value[0];
             let raw_value = key_value[1].trim();
             let value = if key == "Accept-Encoding" {
-                HeaderField::Multiple(
-                    raw_value
-                    .split(", ")
-                    .map(|s| s.to_owned())
-                    .collect()
-                    )
+                HeaderField::Multiple(raw_value.split(", ").map(|s| s.to_owned()).collect())
             } else {
                 HeaderField::Single(raw_value.to_owned())
             };
@@ -98,15 +93,15 @@ impl TryFrom<&TcpStream> for Request {
 
         // If there's no content length, do not attempt to parse the body
         if let Some(len) = headers.get("Content-Length") {
-                match len {
-                    HeaderField::Single(len) => {
-                        let len = len.parse::<u64>()?;
-                        buf.take(len).read_to_end(&mut body_buf)?;
-                    },
-                    HeaderField::Multiple(_) => {
-                        return Err(anyhow!("Len parsing"));
-                    }
+            match len {
+                HeaderField::Single(len) => {
+                    let len = len.parse::<u64>()?;
+                    buf.take(len).read_to_end(&mut body_buf)?;
                 }
+                HeaderField::Multiple(_) => {
+                    return Err(anyhow!("Len parsing"));
+                }
+            }
         }
 
         Ok(Self {
@@ -130,37 +125,35 @@ impl Response {
     pub fn to_vec(&self) -> Vec<u8> {
         match self {
             Response::Ok(Some((body, mime, encoding))) => {
-                let content = if encoding.is_some() { 
+                let content = if encoding.is_some() {
                     let mut b = GzEncoder::new(Vec::new(), Compression::default());
                     // TODO: handle errors
                     let _ = b.write_all(body.as_bytes());
                     let compressed_body = b.finish();
-                    if compressed_body.is_ok() {
-                    let s = compressed_body.unwrap();
-                    s 
+                    if let Ok(bytes) = compressed_body {
+                        bytes
                     } else {
                         todo!()
                     }
-                } else { body.as_bytes().to_vec() };
+                } else {
+                    body.as_bytes().to_vec()
+                };
                 let mut response = format!(
                 "HTTP/1.1 200 OK\r\nContent-Type: {content_type}\r\nContent-Length: {content_length}\r\n{content_encoding}\r\n",
                 content_type = mime,
-                content_encoding = match encoding { 
+                content_encoding = match encoding {
                     Some(e) => format!("Content-Encoding: {}\r\n", e),
                     None => "".to_owned()
                 },
-                content_length = content.len(),
-
-            )
-            .as_bytes()
-            .to_vec();
+                content_length = content.len(),)
+                    .as_bytes()
+                    .to_vec();
                 if !content.is_empty() {
                     response.extend_from_slice(&content);
                 }
 
                 response
-
-            },
+            }
             Response::Ok(None) => "HTTP/1.1 200 OK\r\n\r\n".as_bytes().to_vec(),
             Response::NotFound => "HTTP/1.1 404 Not Found\r\n\r\n".as_bytes().to_vec(),
             Response::Created => "HTTP/1.1 201 Created\r\n\r\n".as_bytes().to_vec(),

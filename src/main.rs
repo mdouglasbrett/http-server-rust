@@ -1,11 +1,13 @@
+#![warn(clippy::style, clippy::complexity)]
+
 use std::env;
 use std::net::TcpListener;
 use std::sync::{Arc, Mutex};
 
 pub mod handlers;
 pub mod http;
-pub mod routes;
 pub mod router;
+pub mod routes;
 pub mod utils;
 
 use crate::router::request_router;
@@ -21,7 +23,6 @@ fn main() {
     let listener = TcpListener::bind("127.0.0.1:4221").unwrap();
 
     for stream in listener.incoming() {
-
         let path = Arc::clone(&partial_file_path);
         match stream {
             Ok(stream) => {
