@@ -27,7 +27,7 @@ impl From<Option<&str>> for Method {
     }
 }
 
-// TODO: this is a temporary solution
+// TODO: this is a temporary solution. Is there something better?
 #[derive(Debug)]
 pub enum HeaderField {
     Single(String),
@@ -35,12 +35,10 @@ pub enum HeaderField {
 }
 
 pub struct Request {
-    // TODO: avoiding lifetimes, stop doing this!!
     pub method: Method,
     pub route: Route,
+    // https://steveklabnik.com/writing/when-should-i-use-string-vs-str/
     pub path: String,
-    // TODO: This may not be the best data structure - 
-    // should I handle the content encoding here, or later?
     pub headers: HashMap<String, HeaderField>,
     pub body: Vec<u8>,
 }
