@@ -1,4 +1,4 @@
-#![warn(clippy::style, clippy::complexity)]
+#![warn(clippy::style, clippy::complexity, clippy::perf)]
 
 use std::env;
 use std::net::TcpListener;
