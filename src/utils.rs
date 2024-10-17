@@ -18,39 +18,40 @@ pub fn get_path_parts(s: &str) -> Vec<&str> {
 pub fn get_header_value(val: &str, headers: &HashMap<String, HeaderField>) -> Option<String> {
     let header_val = headers.get(val);
     match val {
-        "Content-Length" | "User-Agent" => {
+        "Accept-Encoding" => match header_val {
+            Some(HeaderField::Multiple(v)) => {
+                let filtered_encodings = v
+                    .iter()
+                    .filter(|e| e.as_str() == ALLOWED_ENCODING)
+                    .collect::<Vec<&String>>();
+                if filtered_encodings.is_empty() {
+                    None
+                } else {
+                    Some(filtered_encodings[0].to_owned())
+                }
+            }
+            _ => None,
+        },
+        _ => {
             if let Some(HeaderField::Single(val)) = header_val {
                 Some(val.to_owned())
             } else {
                 None
             }
         }
-        "Accept-Encoding" => match header_val {
-            Some(HeaderField::Multiple(v)) => {
-                    let filtered_encodings = v
-                        .iter()
-                        .filter(|e| e.as_str() == ALLOWED_ENCODING)
-                        .collect::<Vec<&String>>();
-                    if filtered_encodings.is_empty() {
-                        None
-                    } else {
-                        Some(filtered_encodings[0].to_owned())
-                    }
-            },
-            _ => None,
-        },
-        _ => None,
     }
 }
 
-pub fn read_file(fp: Arc<Mutex<Option<String>>>, filename: &str) -> Option<String> {
+// TODO: custom errors
+pub fn read_file(
+    fp: Arc<Mutex<Option<String>>>,
+    filename: &str,
+) -> Result<String, Box<dyn std::error::Error>> {
     // TODO: I really don't like this unwrap/clone/unwrap dance
-    let path = Path::new(&fp.lock().unwrap().clone().unwrap()).join(filename);
-    if let Ok(f) = fs::read_to_string(path) {
-        Some(f)
-    } else {
-        None
-    }
+    let partial_path = &fp.lock().unwrap().clone().unwrap();
+    let path = Path::new(partial_path).join(filename);
+    let file_contents = fs::read_to_string(path)?;
+    Ok(file_contents)
 }
 
 pub fn write_file(
