@@ -114,10 +114,13 @@ impl TryFrom<&TcpStream> for Request {
     }
 }
 
+// TODO: probably going to have to expand on some of these (client err, 
+// server err)
 pub enum Response {
     Ok(Option<(String, String, Option<String>)>),
     NotFound,
-    Created,
+   Created,
+    ServerError,
 }
 
 // TODO: this could error out
@@ -157,6 +160,7 @@ impl Response {
             Response::Ok(None) => "HTTP/1.1 200 OK\r\n\r\n".as_bytes().to_vec(),
             Response::NotFound => "HTTP/1.1 404 Not Found\r\n\r\n".as_bytes().to_vec(),
             Response::Created => "HTTP/1.1 201 Created\r\n\r\n".as_bytes().to_vec(),
+            Response::ServerError => "HTTP/1.1 500 Internal Server Error\r\n\r\n".as_bytes().to_vec()
         }
     }
 }

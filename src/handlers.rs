@@ -42,6 +42,7 @@ pub fn handle_get_file(
     let filename = get_path_parts(&r.path)[1];
     // TODO: this _might_ break the api
     // TODO: should we be doing the 404 off the back of this error?
+    // TODO: can we do this in the router? and get rid of the empty check?
     let contents = read_file(fp, filename)?;
     let encoding = get_header_value("Accept-Encoding", &r.headers);
     // TODO: is this legit now?
@@ -69,6 +70,8 @@ pub fn handle_post_file(
     if !r.body.is_empty() {
         write_file(fp, filename, r)?;
     } else {
+        // TODO: should this be handled in the Request parsing?
+        // Maybe return a 500 there?
         return Err(RequestError::BodyError("Empty body".to_owned()).into());
     };
     s.write_all(&Response::Created.to_vec())?;
@@ -77,5 +80,10 @@ pub fn handle_post_file(
 
 pub fn handle_unknown(s: &mut TcpStream) -> Result<(), HandlerError> {
     s.write_all(&Response::NotFound.to_vec())?;
+    Ok(())
+}
+
+pub fn handle_server_error(s: &mut TcpStream) -> Result<(), HandlerError> {
+    s.write_all(&Response::ServerError.to_vec())?;
     Ok(())
 }
