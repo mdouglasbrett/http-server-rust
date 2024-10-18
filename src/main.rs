@@ -4,12 +4,12 @@ use std::env;
 use std::net::TcpListener;
 use std::sync::{Arc, Mutex};
 
+pub mod errors;
 pub mod handlers;
 pub mod http;
 pub mod router;
 pub mod routes;
 pub mod utils;
-pub mod errors;
 
 use crate::router::request_router;
 

@@ -2,9 +2,7 @@ use std::io::prelude::Write;
 use std::net::TcpStream;
 use std::sync::{Arc, Mutex};
 
-use anyhow::anyhow;
-
-use crate::errors::HandlerError;
+use crate::errors::{HandlerError, RequestError};
 use crate::http::{Request, Response};
 use crate::utils::{get_header_value, get_path_parts, read_file, write_file};
 
@@ -26,8 +24,8 @@ pub fn handle_user_agent(s: &mut TcpStream, r: &Request) -> Result<(), HandlerEr
     let body = get_header_value("User-Agent", &r.headers);
     let encoding = get_header_value("Accept-Encoding", &r.headers);
     if body.is_none() {
-        // TODO: errors!!
-        return Err(anyhow!("No User-Agent in headers").into());
+        // TODO: do I just want to do this in the get_header_value func and use ?
+        return Err(RequestError::HeaderError("No User-Agent in headers".to_owned()).into());
     } else {
         s.write_all(
             &Response::Ok(Some((body.unwrap(), "text/plain".to_owned(), encoding))).to_vec(),
@@ -46,7 +44,7 @@ pub fn handle_get_file(
     // TODO: should we be doing the 404 off the back of this error?
     let contents = read_file(fp, filename)?;
     let encoding = get_header_value("Accept-Encoding", &r.headers);
-    // TODO: is this legit?
+    // TODO: is this legit now?
     if contents.is_empty() {
         handle_unknown(s)
     } else {
@@ -71,8 +69,7 @@ pub fn handle_post_file(
     if !r.body.is_empty() {
         write_file(fp, filename, r)?;
     } else {
-        // TODO: Errors
-        return Err(anyhow!("Empty body").into());
+        return Err(RequestError::BodyError("Empty body".to_owned()).into());
     };
     s.write_all(&Response::Created.to_vec())?;
     Ok(())

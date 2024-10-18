@@ -43,10 +43,8 @@ pub fn get_header_value(val: &str, headers: &HashMap<String, HeaderField>) -> Op
 }
 
 // TODO: custom errors
-pub fn read_file(
-    fp: Arc<Mutex<Option<String>>>,
-    filename: &str,
-) -> Result<String, Box<dyn std::error::Error>> {
+pub fn read_file(fp: Arc<Mutex<Option<String>>>, filename: &str) -> Result<String, std::io::Error> {
+    // TODO: this error might have to change if I change my approach here
     // TODO: I really don't like this unwrap/clone/unwrap dance
     let partial_path = &fp.lock().unwrap().clone().unwrap();
     let path = Path::new(partial_path).join(filename);
@@ -58,7 +56,7 @@ pub fn write_file(
     fp: Arc<Mutex<Option<String>>>,
     filename: &str,
     req: &Request,
-) -> Result<(), anyhow::Error> {
+) -> Result<(), std::io::Error> {
     // TODO: I really don't like this unwrap/clone/unwrap dance
     let path_inner = fp.lock().unwrap().clone().unwrap();
     let path = Path::new(&path_inner);
