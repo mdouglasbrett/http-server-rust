@@ -2,7 +2,7 @@ use std::io::prelude::Write;
 use std::net::TcpStream;
 use std::sync::{Arc, Mutex};
 
-use crate::errors::{HandlerError, RequestError};
+use crate::errors::{ClientError, HandlerError, ServerError};
 use crate::http::{Request, Response};
 use crate::utils::{get_header_value, get_path_parts, read_file, write_file};
 
@@ -25,7 +25,7 @@ pub fn handle_user_agent(s: &mut TcpStream, r: &Request) -> Result<(), HandlerEr
     let encoding = get_header_value("Accept-Encoding", &r.headers);
     if body.is_none() {
         // TODO: do I just want to do this in the get_header_value func and use ?
-        return Err(RequestError::HeaderError("No User-Agent in headers".to_owned()).into());
+        return Err(ClientError::BadRequest.into());
     } else {
         s.write_all(
             &Response::Ok(Some((body.unwrap(), "text/plain".to_owned(), encoding))).to_vec(),
@@ -72,7 +72,7 @@ pub fn handle_post_file(
     } else {
         // TODO: should this be handled in the Request parsing?
         // Maybe return a 500 there?
-        return Err(RequestError::BodyError("Empty body".to_owned()).into());
+        return Err(ClientError::BadRequest.into());
     };
     s.write_all(&Response::Created.to_vec())?;
     Ok(())
@@ -83,7 +83,14 @@ pub fn handle_unknown(s: &mut TcpStream) -> Result<(), HandlerError> {
     Ok(())
 }
 
-pub fn handle_server_error(s: &mut TcpStream) -> Result<(), HandlerError> {
-    s.write_all(&Response::ServerError.to_vec())?;
+pub fn handle_server_error(s: &mut TcpStream, err: ServerError) -> Result<(), HandlerError> {
+    match err {
+        ServerError::Internal => {
+            s.write_all(&Response::ServerError(ServerError::Internal).to_vec())?
+        }
+        ServerError::NotImplemented => {
+            s.write_all(&Response::ServerError(ServerError::NotImplemented).to_vec())?
+        }
+    };
     Ok(())
 }

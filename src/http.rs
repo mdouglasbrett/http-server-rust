@@ -4,16 +4,16 @@ use std::{
     net::TcpStream,
 };
 
-use anyhow::anyhow;
-
 use flate2::{write::GzEncoder, Compression};
 
+use crate::errors::{ClientError, ServerError, RequestError};
 use crate::routes::Route;
 use crate::utils::get_path_parts;
 
 pub enum Method {
     Get,
     Post,
+    Unsupported(ServerError),
 }
 
 impl From<Option<&str>> for Method {
@@ -22,7 +22,7 @@ impl From<Option<&str>> for Method {
             Some("GET") => Self::Get,
             Some("POST") => Self::Post,
             // TODO: do I want to panic here?
-            _ => panic!("Requires an HTTP method"),
+            _ => Self::Unsupported(ServerError::NotImplemented),
         }
     }
 }
@@ -45,17 +45,23 @@ pub struct Request {
 
 // TODO: error handling
 impl TryFrom<&TcpStream> for Request {
-    type Error = anyhow::Error;
+    type Error = RequestError;
     fn try_from(value: &TcpStream) -> Result<Self, Self::Error> {
         let mut buf = BufReader::new(value);
         let mut start_line = String::new();
-        buf.read_line(&mut start_line);
+        let _ = buf.read_line(&mut start_line)?;
         let mut start_parts = start_line.split_whitespace();
-        let method = Method::from(start_parts.next());
+        let method = match Method::from(start_parts.next()) {
+            Method::Unsupported(err) => {
+                return Err(err.into());
+            }
+            Method::Get => Method::Get,
+            Method::Post => Method::Post,
+        };
         let path = match start_parts.next() {
             Some(s) => s.to_owned(),
-            _ => {
-                return Err(anyhow!("TODO: real errors"));
+            None => {
+                return Err(ClientError::BadRequest.into());
             }
         };
         let path_parts = get_path_parts(path.as_str());
@@ -70,7 +76,7 @@ impl TryFrom<&TcpStream> for Request {
 
         loop {
             let mut header_line = String::new();
-            buf.read_line(&mut header_line);
+            let _ = buf.read_line(&mut header_line)?;
             let trimmed_header_line = header_line.trim();
             if trimmed_header_line.is_empty() {
                 // I think we have reached the body at this point
@@ -99,7 +105,7 @@ impl TryFrom<&TcpStream> for Request {
                     buf.take(len).read_to_end(&mut body_buf)?;
                 }
                 HeaderField::Multiple(_) => {
-                    return Err(anyhow!("Len parsing"));
+                    return Err(ClientError::BadRequest.into());
                 }
             }
         }
@@ -114,20 +120,21 @@ impl TryFrom<&TcpStream> for Request {
     }
 }
 
-// TODO: probably going to have to expand on some of these (client err, 
+// TODO: probably going to have to expand on some of these (client err,
 // server err)
 pub enum Response {
     Ok(Option<(String, String, Option<String>)>),
     NotFound,
-   Created,
-    ServerError,
+    Created,
+    ClientError(ClientError),
+    ServerError(ServerError),
 }
 
 // TODO: this could error out
 impl Response {
     pub fn to_vec(&self) -> Vec<u8> {
         match self {
-            Response::Ok(Some((body, mime, encoding))) => {
+            Self::Ok(Some((body, mime, encoding))) => {
                 let content = if encoding.is_some() {
                     let mut b = GzEncoder::new(Vec::new(), Compression::default());
                     // TODO: handle errors
@@ -157,10 +164,15 @@ impl Response {
 
                 response
             }
-            Response::Ok(None) => "HTTP/1.1 200 OK\r\n\r\n".as_bytes().to_vec(),
-            Response::NotFound => "HTTP/1.1 404 Not Found\r\n\r\n".as_bytes().to_vec(),
-            Response::Created => "HTTP/1.1 201 Created\r\n\r\n".as_bytes().to_vec(),
-            Response::ServerError => "HTTP/1.1 500 Internal Server Error\r\n\r\n".as_bytes().to_vec()
+            Self::Ok(None) => "HTTP/1.1 200 OK\r\n\r\n".as_bytes().to_vec(),
+            Self::NotFound => "HTTP/1.1 404 Not Found\r\n\r\n".as_bytes().to_vec(),
+            Self::Created => "HTTP/1.1 201 Created\r\n\r\n".as_bytes().to_vec(),
+            Self::ServerError(err) => format!("HTTP/1.1 {}\r\n\r\n", err.to_owned())
+                .as_bytes()
+                .to_vec(),
+            Self::ClientError(err) => format!("HTTP/1.1 {}\r\n\r\n", err.to_owned())
+                .as_bytes()
+                .to_vec(),
         }
     }
 }

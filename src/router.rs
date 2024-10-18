@@ -17,10 +17,10 @@ pub fn request_router(
     mut stream: TcpStream,
     file_path: Arc<Mutex<Option<String>>>,
 ) -> Result<(), HandlerError> {
-    if let Ok(req) = Request::try_from(&stream) {
+    match Request::try_from(&stream) {
         // TODO - handle_get_file can also result in a 404 - I would prefer to
         // bubble that up I think
-        match (&req.method, &req.route) {
+        Ok(req) => {match (&req.method, &req.route) {
             (Method::Get, Route::Empty) => handle_empty(&mut stream)?,
             (Method::Get, Route::Echo) => handle_echo(&mut stream, &req)?,
             (Method::Get, Route::UserAgent) => handle_user_agent(&mut stream, &req)?,
@@ -29,9 +29,13 @@ pub fn request_router(
             // TODO: rename to handle_client_error?
             _ => handle_unknown(&mut stream)?,
         }
-    } else {
-        handle_server_error(&mut stream)?;
-    };
+        },
+        // Handle the Client/Server errors
+        _ => {
+            todo!()
+                //handle_server_error(&mut stream)?;
+        }
+    }
 
     Ok(())
 }
