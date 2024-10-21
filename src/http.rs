@@ -6,7 +6,7 @@ use std::{
 
 use flate2::{write::GzEncoder, Compression};
 
-use crate::errors::{ClientError, ServerError, RequestError};
+use crate::errors::{ClientError, RequestError, ServerError};
 use crate::routes::Route;
 use crate::utils::get_path_parts;
 
@@ -120,8 +120,6 @@ impl TryFrom<&TcpStream> for Request {
     }
 }
 
-// TODO: probably going to have to expand on some of these (client err,
-// server err)
 pub enum Response {
     Ok(Option<(String, String, Option<String>)>),
     NotFound,
@@ -130,20 +128,20 @@ pub enum Response {
     ServerError(ServerError),
 }
 
-// TODO: this could error out
 impl Response {
     pub fn to_vec(&self) -> Vec<u8> {
         match self {
             Self::Ok(Some((body, mime, encoding))) => {
                 let content = if encoding.is_some() {
                     let mut b = GzEncoder::new(Vec::new(), Compression::default());
-                    // TODO: handle errors
                     let _ = b.write_all(body.as_bytes());
                     let compressed_body = b.finish();
                     if let Ok(bytes) = compressed_body {
                         bytes
                     } else {
-                        todo!()
+                        return format!("HTTP/1.1 {}\r\n\r\n", ServerError::Internal)
+                            .as_bytes()
+                            .to_vec();
                     }
                 } else {
                     body.as_bytes().to_vec()
@@ -167,12 +165,8 @@ impl Response {
             Self::Ok(None) => "HTTP/1.1 200 OK\r\n\r\n".as_bytes().to_vec(),
             Self::NotFound => "HTTP/1.1 404 Not Found\r\n\r\n".as_bytes().to_vec(),
             Self::Created => "HTTP/1.1 201 Created\r\n\r\n".as_bytes().to_vec(),
-            Self::ServerError(err) => format!("HTTP/1.1 {}\r\n\r\n", err.to_owned())
-                .as_bytes()
-                .to_vec(),
-            Self::ClientError(err) => format!("HTTP/1.1 {}\r\n\r\n", err.to_owned())
-                .as_bytes()
-                .to_vec(),
+            Self::ServerError(err) => format!("HTTP/1.1 {}\r\n\r\n", err).as_bytes().to_vec(),
+            Self::ClientError(err) => format!("HTTP/1.1 {}\r\n\r\n", err).as_bytes().to_vec(),
         }
     }
 }
