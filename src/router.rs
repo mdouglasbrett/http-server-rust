@@ -3,7 +3,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use crate::errors::{AppError, ClientError};
+use crate::errors::{AppError, ServerError};
 use crate::handlers::{
     handle_echo, handle_empty, handle_error, handle_get_file, handle_post_file, handle_user_agent,
 };
@@ -22,7 +22,7 @@ pub fn request_router(
                 (Method::Get, Route::UserAgent) => handle_user_agent(&mut stream, &req),
                 (Method::Get, Route::Files) => handle_get_file(&mut stream, &req, file_path),
                 (Method::Post, Route::Files) => handle_post_file(&mut stream, &req, file_path),
-                _ => handle_error(&mut stream, ClientError::NotFound.into()),
+                _ => handle_error(&mut stream, ServerError::NotImplemented.into()),
             } {
                 let _ = handle_error(&mut stream, e);
             };
