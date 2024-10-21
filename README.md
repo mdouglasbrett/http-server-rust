@@ -15,6 +15,7 @@ curl -v --data "Hello! From file 234" -H "Content-Type: application/octet-stream
 
 TODO:
 
-- [ ] code clean up
-- [ ] add proper error handling
+- [x] code clean up
+- [x] add proper error handling
 - [ ] tests - previously tested via codecrafters service
+- [ ] add cli front end
