@@ -75,11 +75,6 @@ pub fn handle_post_file(
     Ok(())
 }
 
-pub fn handle_unknown(s: &mut TcpStream) -> Result<(), AppError> {
-    s.write_all(&Response::NotFound.to_vec())?;
-    Ok(())
-}
-
 pub fn handle_error(s: &mut TcpStream, err: AppError) -> Result<(), AppError> {
     match err {
         AppError::Server(e) => s.write_all(&Response::ServerError(e).to_vec())?,
