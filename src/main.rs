@@ -24,13 +24,17 @@ fn main() -> Result<(), AppError> {
     let partial_file_path = Arc::new(Mutex::new(args.next()));
     let listener = TcpListener::bind("127.0.0.1:4221")?;
 
+    // TODO: naive!! Should I be doing this in a pool?
     for stream in listener.incoming() {
         let path = Arc::clone(&partial_file_path);
         match stream {
             Ok(stream) => {
-                // TODO: naive!!
                 std::thread::spawn(move || {
-                    let _ = request_router(stream, path);
+                    if let Err(e) = request_router(stream, path) {
+                        Err(e)
+                    } else {
+                        Ok(())
+                    }
                 });
             }
             Err(e) => {

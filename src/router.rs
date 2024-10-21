@@ -24,7 +24,7 @@ pub fn request_router(
                 (Method::Post, Route::Files) => handle_post_file(&mut stream, &req, file_path),
                 _ => handle_error(&mut stream, ServerError::NotImplemented.into()),
             } {
-                let _ = handle_error(&mut stream, e);
+                handle_error(&mut stream, e)?;
             };
         }
         Err(e) => {
