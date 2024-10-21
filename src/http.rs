@@ -21,7 +21,6 @@ impl From<Option<&str>> for Method {
         match o {
             Some("GET") => Self::Get,
             Some("POST") => Self::Post,
-            // TODO: do I want to panic here?
             _ => Self::Unsupported(ServerError::NotImplemented),
         }
     }
