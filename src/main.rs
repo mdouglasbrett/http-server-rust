@@ -15,9 +15,8 @@ use crate::errors::AppError;
 use crate::router::request_router;
 
 fn main() -> Result<(), AppError> {
+    // TODO: cli front end
     let mut args = env::args();
-    // TODO: I will most likely just use clap here when I'm cleaning up...
-    // program name
     let _ = args.next();
     // --directory flag
     let _ = args.next();
