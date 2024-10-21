@@ -1,4 +1,4 @@
-#![warn(clippy::style, clippy::complexity, clippy::perf)]
+#![warn(clippy::style, clippy::complexity, clippy::perf, clippy::correctness)]
 
 use std::env;
 use std::net::TcpListener;
@@ -11,9 +11,10 @@ pub mod router;
 pub mod routes;
 pub mod utils;
 
+use crate::errors::AppError;
 use crate::router::request_router;
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<(), AppError> {
     let mut args = env::args();
     // TODO: I will most likely just use clap here when I'm cleaning up...
     // program name
@@ -29,11 +30,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Ok(stream) => {
                 // TODO: naive!!
                 std::thread::spawn(move || {
-                    request_router(stream, path);
+                    let _ = request_router(stream, path);
                 });
             }
             Err(e) => {
-                println!("error: {}", e);
+                panic!("Panicked with: {:?}", e);
             }
         }
     }

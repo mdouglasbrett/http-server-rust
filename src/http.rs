@@ -6,7 +6,7 @@ use std::{
 
 use flate2::{write::GzEncoder, Compression};
 
-use crate::errors::{ClientError, RequestError, ServerError};
+use crate::errors::{AppError, ClientError, ServerError};
 use crate::routes::Route;
 use crate::utils::get_path_parts;
 
@@ -45,7 +45,7 @@ pub struct Request {
 
 // TODO: error handling
 impl TryFrom<&TcpStream> for Request {
-    type Error = RequestError;
+    type Error = AppError;
     fn try_from(value: &TcpStream) -> Result<Self, Self::Error> {
         let mut buf = BufReader::new(value);
         let mut start_line = String::new();

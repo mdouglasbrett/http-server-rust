@@ -1,5 +1,3 @@
-// TODO: I expect I can handle some of these 'From' implementations
-// in a more generic way...
 use std::error::Error;
 use std::fmt::{Debug, Display, Error as FmtErr, Formatter};
 use std::io::Error as IOError;
@@ -40,92 +38,41 @@ impl Display for ClientError {
 }
 
 #[derive(Debug)]
-pub struct RequestError {
-    id: String,
-    message: String,
+pub enum AppError {
+    Client(ClientError),
+    Server(ServerError),
+    IO(IOError),
+    Parse(ParseIntError),
 }
 
-impl Error for RequestError {}
+impl Error for AppError {}
 
-impl Display for RequestError {
+impl Display for AppError {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), FmtErr> {
-        write!(f, "Error id: {}, message: {}", self.id, self.message)
+        write!(f, "{:?}", self)
     }
 }
 
-impl From<ClientError> for RequestError {
+impl From<ClientError> for AppError {
     fn from(error: ClientError) -> Self {
-        Self {
-            id: "ClientError".to_owned(),
-            message: error.to_string(),
-        }
+        Self::Client(error)
     }
 }
 
-impl From<ServerError> for RequestError {
+impl From<ServerError> for AppError {
     fn from(error: ServerError) -> Self {
-        Self {
-            id: "ServerError".to_owned(),
-            message: error.to_string(),
-        }
+        Self::Server(error)
     }
 }
 
-impl From<IOError> for RequestError {
+impl From<IOError> for AppError {
     fn from(error: IOError) -> Self {
-        Self {
-            id: "IO".to_owned(),
-            message: error.to_string(),
-        }
+        Self::IO(error)
     }
 }
 
-impl From<ParseIntError> for RequestError {
+impl From<ParseIntError> for AppError {
     fn from(error: ParseIntError) -> Self {
-        Self {
-            id: "ParseInt".to_owned(),
-            message: error.to_string(),
-        }
-    }
-}
-
-#[derive(Debug)]
-pub struct HandlerError {
-    id: String,
-    message: String,
-}
-
-impl Error for HandlerError {}
-
-impl Display for HandlerError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), FmtErr> {
-        write!(f, "Error id: {}, message: {}", self.id, self.message)
-    }
-}
-
-impl From<ClientError> for HandlerError {
-    fn from(error: ClientError) -> Self {
-        Self {
-            id: "ClientError".to_owned(),
-            message: error.to_string(),
-        }
-    }
-}
-
-impl From<ServerError> for HandlerError {
-    fn from(error: ServerError) -> Self {
-        Self {
-            id: "ServerError".to_owned(),
-            message: error.to_string(),
-        }
-    }
-}
-
-impl From<IOError> for HandlerError {
-    fn from(error: IOError) -> Self {
-        Self {
-            id: "IO".to_owned(),
-            message: error.to_string(),
-        }
+        Self::Parse(error)
     }
 }
