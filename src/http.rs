@@ -1,6 +1,6 @@
 use std::{
     collections::HashMap,
-    io::{Read,Write, BufRead, BufReader},
+    io::{BufRead, BufReader, Read, Write},
 };
 
 use flate2::{write::GzEncoder, Compression};
@@ -12,6 +12,7 @@ use crate::utils::get_path_parts;
 pub enum Method {
     Get,
     Post,
+    Unknown(ClientError),
     Unsupported(ServerError),
 }
 
@@ -20,7 +21,8 @@ impl From<Option<&str>> for Method {
         match o {
             Some("GET") => Self::Get,
             Some("POST") => Self::Post,
-            _ => Self::Unsupported(ServerError::NotImplemented),
+            Some(_) => Self::Unsupported(ServerError::NotImplemented),
+            None => Self::Unknown(ClientError::BadRequest),
         }
     }
 }
@@ -52,6 +54,9 @@ impl Request {
         let mut start_parts = start_line.split_whitespace();
         let method = match Method::from(start_parts.next()) {
             Method::Unsupported(err) => {
+                return Err(err.into());
+            }
+            Method::Unknown(err) => {
                 return Err(err.into());
             }
             Method::Get => Method::Get,
@@ -121,7 +126,6 @@ impl Request {
 
 pub enum Response {
     Ok(Option<(String, String, Option<String>)>),
-    NotFound,
     Created,
     ClientError(ClientError),
     ServerError(ServerError),
@@ -131,6 +135,7 @@ impl Response {
     pub fn to_vec(&self) -> Vec<u8> {
         match self {
             Self::Ok(Some((body, mime, encoding))) => {
+                // TODO: how do I reliably test this?
                 let content = if encoding.is_some() {
                     let mut b = GzEncoder::new(Vec::new(), Compression::default());
                     let _ = b.write_all(body.as_bytes());
@@ -162,10 +167,52 @@ impl Response {
                 response
             }
             Self::Ok(None) => "HTTP/1.1 200 OK\r\n\r\n".as_bytes().to_vec(),
-            Self::NotFound => "HTTP/1.1 404 Not Found\r\n\r\n".as_bytes().to_vec(),
             Self::Created => "HTTP/1.1 201 Created\r\n\r\n".as_bytes().to_vec(),
             Self::ServerError(err) => format!("HTTP/1.1 {}\r\n\r\n", err).as_bytes().to_vec(),
             Self::ClientError(err) => format!("HTTP/1.1 {}\r\n\r\n", err).as_bytes().to_vec(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    mod response {
+        use crate::errors::{ClientError::NotFound, ServerError::NotImplemented};
+        use crate::http::Response;
+        #[test]
+        fn client_error_response() {
+            let expected = "HTTP/1.1 404 Not Found\r\n\r\n".as_bytes().to_vec();
+            assert_eq!(expected, Response::ClientError(NotFound).to_vec());
+        }
+        #[test]
+        fn server_error_response() {
+            let expected = "HTTP/1.1 501 Not Implemented\r\n\r\n".as_bytes().to_vec();
+            assert_eq!(expected, Response::ServerError(NotImplemented).to_vec());
+        }
+        #[test]
+        fn created_response() {
+            let expected = "HTTP/1.1 201 Created\r\n\r\n".as_bytes().to_vec();
+            assert_eq!(expected, Response::Created.to_vec());
+        }
+        #[test]
+        fn ok_response() {
+            let expected =
+                "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 3\r\n\r\nabc"
+                    .as_bytes()
+                    .to_vec();
+            assert_eq!(
+                expected,
+                Response::Ok(Some((String::from("abc"), String::from("text/plain"), None))).to_vec()
+            );
+        }
+        #[test]
+        fn empty_response() {
+            let expected = "HTTP/1.1 200 OK\r\n\r\n".as_bytes().to_vec();
+            assert_eq!(expected, Response::Ok(None).to_vec())
+        }
+    }
+
+    mod request {
+        use crate::http::Request;
     }
 }
