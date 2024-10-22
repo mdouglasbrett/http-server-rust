@@ -4,6 +4,7 @@ use std::io::Write;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 
+use crate::errors::AppError;
 use crate::http::{HeaderField, Request};
 
 const ALLOWED_ENCODING: &str = "gzip";
@@ -42,8 +43,7 @@ pub fn get_header_value(val: &str, headers: &HashMap<String, HeaderField>) -> Op
     }
 }
 
-// TODO: custom errors
-pub fn read_file(fp: Arc<Mutex<Option<String>>>, filename: &str) -> Result<String, std::io::Error> {
+pub fn read_file(fp: Arc<Mutex<Option<String>>>, filename: &str) -> Result<String, AppError> {
     // TODO: this error might have to change if I change my approach here
     // TODO: I really don't like this unwrap/clone/unwrap dance
     let partial_path = &fp.lock().unwrap().clone().unwrap();
@@ -56,7 +56,7 @@ pub fn write_file(
     fp: Arc<Mutex<Option<String>>>,
     filename: &str,
     req: &Request,
-) -> Result<(), std::io::Error> {
+) -> Result<(), AppError> {
     // TODO: I really don't like this unwrap/clone/unwrap dance
     let path_inner = fp.lock().unwrap().clone().unwrap();
     let path = Path::new(&path_inner);
@@ -69,4 +69,24 @@ pub fn write_file(
         file.write_all(&req.body)?;
         Ok(())
     }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+        #[test]
+        fn returns_correct_path_parts() {
+            let path = "/test/path/string";
+            let expected = vec!("test", "path", "string");
+            assert_eq!(expected, get_path_parts(path));
+        }
+
+        #[test]
+        fn returns_empty_vec() {
+            let path = "/";
+            let expected: Vec<&str> = Vec::new();
+            assert_eq!(expected, get_path_parts(path));
+        }
 }
