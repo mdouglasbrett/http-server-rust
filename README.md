@@ -1,6 +1,6 @@
 # Codecrafters - Build your own HTTP server
 
-Solution to the [Build your own HTTP server](https://app.codecrafters.io/courses/http-server/overview) project.
+My solution to the [Build your own HTTP server](https://app.codecrafters.io/courses/http-server/overview) project.
 
 Run locally:
 
