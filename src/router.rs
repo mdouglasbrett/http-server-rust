@@ -1,5 +1,5 @@
 use std::{
-    net::TcpStream,
+    io::{Read, Write},
     sync::{Arc, Mutex},
 };
 
@@ -11,10 +11,10 @@ use crate::http::{Method, Request};
 use crate::routes::Route;
 
 pub fn request_router(
-    mut stream: TcpStream,
+    mut stream: impl Read + Write,
     file_path: Arc<Mutex<Option<String>>>,
 ) -> Result<(), AppError> {
-    match Request::try_from(&stream) {
+    match Request::try_new(&mut stream) {
         Ok(req) => {
             if let Err(e) = match (&req.method, &req.route) {
                 (Method::Get, Route::Empty) => handle_empty(&mut stream),

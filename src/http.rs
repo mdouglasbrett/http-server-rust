@@ -1,7 +1,6 @@
 use std::{
     collections::HashMap,
-    io::{prelude::*, BufReader},
-    net::TcpStream,
+    io::{Read,Write, BufRead, BufReader},
 };
 
 use flate2::{write::GzEncoder, Compression};
@@ -42,10 +41,11 @@ pub struct Request {
     pub body: Vec<u8>,
 }
 
-// TODO: error handling
-impl TryFrom<&TcpStream> for Request {
-    type Error = AppError;
-    fn try_from(value: &TcpStream) -> Result<Self, Self::Error> {
+impl Request {
+    pub fn try_new<T>(value: &mut T) -> Result<Self, AppError>
+    where
+        T: Read + Write,
+    {
         let mut buf = BufReader::new(value);
         let mut start_line = String::new();
         let _ = buf.read_line(&mut start_line)?;

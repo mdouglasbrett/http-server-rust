@@ -1,5 +1,4 @@
-use std::io::prelude::Write;
-use std::net::TcpStream;
+use std::io::{Read, Write};
 use std::sync::{Arc, Mutex};
 
 use crate::errors::{
@@ -10,12 +9,18 @@ use crate::errors::{
 use crate::http::{Request, Response};
 use crate::utils::{get_header_value, get_path_parts, read_file, write_file};
 
-pub fn handle_empty(s: &mut TcpStream) -> Result<(), AppError> {
+pub fn handle_empty<T>(s: &mut T) -> Result<(), AppError>
+where
+    T: Read + Write,
+{
     s.write_all(&Response::Ok(None).to_vec())?;
     Ok(())
 }
 
-pub fn handle_echo(s: &mut TcpStream, r: &Request) -> Result<(), AppError> {
+pub fn handle_echo<T>(s: &mut T, r: &Request) -> Result<(), AppError>
+where
+    T: Read + Write,
+{
     let encoding = get_header_value("Accept-Encoding", &r.headers);
     let body = get_path_parts(r.path.as_str())[1];
     s.write_all(
@@ -24,7 +29,10 @@ pub fn handle_echo(s: &mut TcpStream, r: &Request) -> Result<(), AppError> {
     Ok(())
 }
 
-pub fn handle_user_agent(s: &mut TcpStream, r: &Request) -> Result<(), AppError> {
+pub fn handle_user_agent<T>(s: &mut T, r: &Request) -> Result<(), AppError>
+where
+    T: Read + Write,
+{
     let body = get_header_value("User-Agent", &r.headers);
     let encoding = get_header_value("Accept-Encoding", &r.headers);
     if body.is_none() {
@@ -37,11 +45,14 @@ pub fn handle_user_agent(s: &mut TcpStream, r: &Request) -> Result<(), AppError>
     Ok(())
 }
 
-pub fn handle_get_file(
-    s: &mut TcpStream,
+pub fn handle_get_file<T>(
+    s: &mut T,
     r: &Request,
     fp: Arc<Mutex<Option<String>>>,
-) -> Result<(), AppError> {
+) -> Result<(), AppError>
+where
+    T: Read + Write,
+{
     let filename = get_path_parts(&r.path)[1];
     // TODO: this _might_ break the api
     // TODO: should we be doing the 404 off the back of this error?
@@ -64,11 +75,14 @@ pub fn handle_get_file(
     }
 }
 
-pub fn handle_post_file(
-    s: &mut TcpStream,
+pub fn handle_post_file<T>(
+    s: &mut T,
     r: &Request,
     fp: Arc<Mutex<Option<String>>>,
-) -> Result<(), AppError> {
+) -> Result<(), AppError>
+where
+    T: Read + Write,
+{
     let filename = get_path_parts(&r.path)[1];
     if !r.body.is_empty() {
         write_file(fp, filename, r)?;
@@ -79,7 +93,10 @@ pub fn handle_post_file(
     Ok(())
 }
 
-pub fn handle_error(s: &mut TcpStream, err: AppError) -> Result<(), AppError> {
+pub fn handle_error<T>(s: &mut T, err: AppError) -> Result<(), AppError>
+where
+    T: Read + Write,
+{
     match err {
         AppError::Server(e) => s.write_all(&Response::ServerError(e).to_vec())?,
         AppError::Client(e) => s.write_all(&Response::ClientError(e).to_vec())?,
