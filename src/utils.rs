@@ -46,6 +46,7 @@ pub fn get_header_value(val: &str, headers: &HashMap<String, HeaderField>) -> Op
 }
 
 // TODO: these functions are going to be interesting to test...
+// TODO: pass readers and writers to these?
 pub fn read_file(fp: Arc<Mutex<Option<String>>>, filename: &str) -> Result<String, AppError> {
     // TODO: I really don't like this unwrap/clone/unwrap dance
     let partial_path = &fp.lock().unwrap().clone().unwrap();

@@ -1,4 +1,4 @@
-use std::io::{Read, Write};
+use std::io::{Write};
 use std::sync::{Arc, Mutex};
 
 use crate::errors::{
@@ -9,18 +9,12 @@ use crate::errors::{
 use crate::http::{Request, Response};
 use crate::utils::{get_header_value, get_path_parts, read_file, write_file};
 
-pub fn handle_empty<T>(s: &mut T) -> Result<(), AppError>
-where
-    T: Read + Write,
-{
+pub fn handle_empty<T: Write>(s: &mut T) -> Result<(), AppError> {
     s.write_all(&Response::Ok(None).to_vec())?;
     Ok(())
 }
 
-pub fn handle_echo<T>(s: &mut T, r: &Request) -> Result<(), AppError>
-where
-    T: Read + Write,
-{
+pub fn handle_echo<T: Write>(s: &mut T, r: &Request) -> Result<(), AppError> {
     let encoding = get_header_value("Accept-Encoding", &r.headers);
     let body = get_path_parts(r.path.as_str())[1];
     s.write_all(
@@ -29,10 +23,7 @@ where
     Ok(())
 }
 
-pub fn handle_user_agent<T>(s: &mut T, r: &Request) -> Result<(), AppError>
-where
-    T: Read + Write,
-{
+pub fn handle_user_agent<T: Write>(s: &mut T, r: &Request) -> Result<(), AppError> {
     let body = get_header_value("User-Agent", &r.headers);
     let encoding = get_header_value("Accept-Encoding", &r.headers);
     if body.is_none() {
@@ -45,14 +36,11 @@ where
     Ok(())
 }
 
-pub fn handle_get_file<T>(
+pub fn handle_get_file<T: Write>(
     s: &mut T,
     r: &Request,
     fp: Arc<Mutex<Option<String>>>,
-) -> Result<(), AppError>
-where
-    T: Read + Write,
-{
+) -> Result<(), AppError> {
     let filename = get_path_parts(&r.path)[1];
     // TODO: this _might_ break the api
     // TODO: should we be doing the 404 off the back of this error?
@@ -75,14 +63,11 @@ where
     }
 }
 
-pub fn handle_post_file<T>(
+pub fn handle_post_file<T: Write>(
     s: &mut T,
     r: &Request,
     fp: Arc<Mutex<Option<String>>>,
-) -> Result<(), AppError>
-where
-    T: Read + Write,
-{
+) -> Result<(), AppError> {
     let filename = get_path_parts(&r.path)[1];
     if !r.body.is_empty() {
         write_file(fp, filename, r)?;
@@ -93,10 +78,7 @@ where
     Ok(())
 }
 
-pub fn handle_error<T>(s: &mut T, err: AppError) -> Result<(), AppError>
-where
-    T: Read + Write,
-{
+pub fn handle_error<T: Write>(s: &mut T, err: AppError) -> Result<(), AppError> {
     match err {
         AppError::Server(e) => s.write_all(&Response::ServerError(e).to_vec())?,
         AppError::Client(e) => s.write_all(&Response::ClientError(e).to_vec())?,

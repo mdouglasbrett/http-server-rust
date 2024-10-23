@@ -44,9 +44,7 @@ pub struct Request {
 }
 
 impl Request {
-    pub fn try_new<T>(value: &mut T) -> Result<Self, AppError>
-    where
-        T: Read + Write,
+    pub fn try_new<T: Read>(value: &mut T) -> Result<Self, AppError>
     {
         let mut buf = BufReader::new(value);
         let mut start_line = String::new();
@@ -202,7 +200,12 @@ mod tests {
                     .to_vec();
             assert_eq!(
                 expected,
-                Response::Ok(Some((String::from("abc"), String::from("text/plain"), None))).to_vec()
+                Response::Ok(Some((
+                    String::from("abc"),
+                    String::from("text/plain"),
+                    None
+                )))
+                .to_vec()
             );
         }
         #[test]
