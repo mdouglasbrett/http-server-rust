@@ -10,8 +10,8 @@ use crate::handlers::{
 use crate::http::request::{Method, Request};
 use crate::routes::Route;
 
-pub fn request_router(
-    mut stream: impl Read + Write,
+pub fn request_router<T: Read + Write>(
+    mut stream: T,
     file_path: Arc<Mutex<Option<String>>>,
 ) -> Result<(), AppError> {
     match Request::try_new(&mut stream) {
