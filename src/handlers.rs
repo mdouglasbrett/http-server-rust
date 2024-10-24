@@ -23,18 +23,18 @@ pub fn handle_echo<T: Write>(s: &mut T, r: &Request) -> Result<(), AppError> {
 pub fn handle_user_agent<T: Write>(s: &mut T, r: &Request) -> Result<(), AppError> {
     let body = get_header_value("User-Agent", &r.headers);
     let encoding = get_header_value("Accept-Encoding", &r.headers);
-    if body.is_none() {
-        return Err(BadRequest.into());
-    } else {
+    if let Some(b) = body {
+        let response = 
+            Response::Ok(Some((
+                        b.as_bytes(),
+                        "text/plain".to_owned(),
+                        encoding,
+                        )));
         s.write_all(
-            &Response::Ok(Some((
-                // TODO: remove this unwrap
-                body.unwrap().as_bytes(),
-                "text/plain".to_owned(),
-                encoding,
-            )))
-            .to_vec(),
-        )?;
+            &response.to_vec(),
+            )?;
+    } else {
+        return Err(BadRequest.into());
     }
     Ok(())
 }
