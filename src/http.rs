@@ -22,8 +22,10 @@ impl From<Option<&str>> for Method {
         match o {
             Some("GET") => Self::Get,
             Some("POST") => Self::Post,
-            Some(_) => Self::Unsupported(ServerError::NotImplemented),
-            None => Self::Unknown(ClientError::BadRequest),
+            // Maybe tomorrow...
+            Some("PUT") | Some("PATCH") | Some("OPTIONS") | Some("HEAD") | Some("DELETE")
+            | Some("CONNECT") | Some("TRACE") => Self::Unsupported(ServerError::NotImplemented),
+            _ => Self::Unknown(ClientError::BadRequest),
         }
     }
 }
@@ -135,6 +137,7 @@ pub enum Response<'a> {
 }
 
 impl<'a> Response<'a> {
+    // TODO: is this idiomatic?
     pub fn to_vec(&self) -> Vec<u8> {
         match self {
             Self::Ok(Some((body, mime, encoding))) => {
@@ -169,8 +172,8 @@ impl<'a> Response<'a> {
 
                 response
             }
-            Self::Ok(None) => "HTTP/1.1 200 OK\r\n\r\n".as_bytes().to_vec(),
-            Self::Created => "HTTP/1.1 201 Created\r\n\r\n".as_bytes().to_vec(),
+            Self::Ok(None) => b"HTTP/1.1 200 OK\r\n\r\n".to_vec(),
+            Self::Created => b"HTTP/1.1 201 Created\r\n\r\n".to_vec(),
             Self::ServerError(err) => format!("HTTP/1.1 {}\r\n\r\n", err).as_bytes().to_vec(),
             Self::ClientError(err) => format!("HTTP/1.1 {}\r\n\r\n", err).as_bytes().to_vec(),
         }
@@ -181,6 +184,7 @@ impl<'a> Response<'a> {
 mod tests {
 
     mod request {
+        use crate::errors::{AppError, ClientError};
         use crate::http::Method::Get;
         use crate::http::Request;
         use crate::routes::Route::Echo;
@@ -188,15 +192,24 @@ mod tests {
 
         #[test]
         fn handles_http_request() {
-            let mut req = "GET /echo/abc HTTP/1.1\r\n\r\n".as_bytes();
+            let req = b"GET /echo/abc HTTP/1.1\r\n\r\n";
             let expected = Request {
                 method: Get,
                 route: Echo,
                 path: "/echo/abc".to_owned(),
-                body: "abc".as_bytes().to_vec(),
+                body: b"abc".to_vec(),
                 headers: HashMap::new(),
             };
-            assert_eq!(expected, Request::try_new(&mut req).unwrap());
+            assert_eq!(expected, Request::try_new(&mut req.as_slice()).unwrap());
+        }
+
+        #[test]
+        fn handles_bad_request() {
+            let req = b"/echo/abc\r\n\r\n";
+            assert_eq!(
+                AppError::Client(ClientError::BadRequest),
+                Request::try_new(&mut req.as_slice()).unwrap_err()
+            );
         }
     }
     mod response {

@@ -37,11 +37,11 @@ impl Display for ClientError {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum AppError {
     Client(ClientError),
     Server(ServerError),
-    IO(IOError),
+    IO(String),
     Parse(ParseIntError),
 }
 
@@ -67,7 +67,7 @@ impl From<ServerError> for AppError {
 
 impl From<IOError> for AppError {
     fn from(error: IOError) -> Self {
-        Self::IO(error)
+        Self::IO(error.to_string())
     }
 }
 

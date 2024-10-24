@@ -54,14 +54,12 @@ pub fn handle_get_file<T: Write>(
     if contents.is_empty() {
         handle_error(s, NotFound.into())
     } else {
-        s.write_all(
-            &Response::Ok(Some((
-                &contents,
-                "application/octet-stream".to_owned(),
-                encoding,
-            )))
-            .to_vec(),
-        )?;
+        let response = Response::Ok(Some((
+            &contents,
+            "application/octet-stream".to_owned(),
+            encoding,
+        )));
+        s.write_all(&response.to_vec())?;
         Ok(())
     }
 }
@@ -77,7 +75,8 @@ pub fn handle_post_file<T: Write>(
     } else {
         return Err(BadRequest.into());
     };
-    s.write_all(&Response::Created.to_vec())?;
+    let response = Response::Created;
+    s.write_all(&response.to_vec())?;
     Ok(())
 }
 
