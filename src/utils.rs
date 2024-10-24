@@ -5,7 +5,7 @@ use std::path::Path;
 use std::sync::{Arc, Mutex};
 
 use crate::errors::AppError;
-use crate::http::{HeaderField, Request};
+use crate::http::request::{HeaderField, Request};
 
 const ALLOWED_ENCODING: &str = "gzip";
 
@@ -100,7 +100,7 @@ mod tests {
         use std::collections::HashMap;
 
         use crate::{
-            constants::headers as header_fields, http::HeaderField, utils::get_header_value,
+            constants::headers as header_fields, http::request::HeaderField, utils::get_header_value,
         };
 
         #[test]
@@ -116,7 +116,10 @@ mod tests {
                 expected,
                 get_header_value(header_fields::CONTENT_LENGTH, &headers)
             );
-            assert_eq!(None, get_header_value(header_fields::ACCEPT_ENCODING, &headers));
+            assert_eq!(
+                None,
+                get_header_value(header_fields::ACCEPT_ENCODING, &headers)
+            );
         }
 
         #[test]
@@ -132,7 +135,10 @@ mod tests {
             );
             let expected = Some(String::from("gzip"));
 
-            assert_eq!(expected, get_header_value(header_fields::ACCEPT_ENCODING, &headers));
+            assert_eq!(
+                expected,
+                get_header_value(header_fields::ACCEPT_ENCODING, &headers)
+            );
 
             let mut headers = HashMap::new();
             headers.insert(
@@ -144,7 +150,10 @@ mod tests {
                 ]),
             );
 
-            assert_eq!(None, get_header_value(header_fields::ACCEPT_ENCODING, &headers));
+            assert_eq!(
+                None,
+                get_header_value(header_fields::ACCEPT_ENCODING, &headers)
+            );
         }
     }
 }

@@ -1,11 +1,9 @@
 use std::{
     collections::HashMap,
-    io::{BufRead, BufReader, Read, Write},
+    io::{BufRead, BufReader, Read},
 };
 
-use flate2::{write::GzEncoder, Compression};
-
-use crate::constants::{headers as header_fields};
+use crate::constants::headers as header_fields;
 use crate::errors::{AppError, ClientError, ServerError};
 use crate::routes::Route;
 use crate::utils::get_path_parts;
@@ -130,64 +128,12 @@ impl Request {
     }
 }
 
-pub enum Response<'a> {
-    Ok(Option<(&'a [u8], String, Option<String>)>),
-    Created,
-    ClientError(ClientError),
-    ServerError(ServerError),
-}
-
-impl<'a> Response<'a> {
-    // TODO: is this idiomatic?
-    pub fn to_vec(&self) -> Vec<u8> {
-        match self {
-            Self::Ok(Some((body, mime, encoding))) => {
-                // TODO: how do I reliably test this?
-                let content = if encoding.is_some() {
-                    let mut b = GzEncoder::new(Vec::new(), Compression::default());
-                    let _ = b.write_all(body);
-                    let compressed_body = b.finish();
-                    if let Ok(bytes) = compressed_body {
-                        bytes
-                    } else {
-                        return format!("HTTP/1.1 {}\r\n\r\n", ServerError::Internal)
-                            .as_bytes()
-                            .to_vec();
-                    }
-                } else {
-                    body.to_vec()
-                };
-                let mut response = format!(
-                "HTTP/1.1 200 OK\r\nContent-Type: {content_type}\r\nContent-Length: {content_length}\r\n{content_encoding}\r\n",
-                content_type = mime,
-                content_encoding = match encoding {
-                    Some(e) => format!("Content-Encoding: {}\r\n", e),
-                    None => "".to_owned()
-                },
-                content_length = content.len(),)
-                    .as_bytes()
-                    .to_vec();
-                if !content.is_empty() {
-                    response.extend_from_slice(&content);
-                }
-
-                response
-            }
-            Self::Ok(None) => b"HTTP/1.1 200 OK\r\n\r\n".to_vec(),
-            Self::Created => b"HTTP/1.1 201 Created\r\n\r\n".to_vec(),
-            Self::ServerError(err) => format!("HTTP/1.1 {}\r\n\r\n", err).as_bytes().to_vec(),
-            Self::ClientError(err) => format!("HTTP/1.1 {}\r\n\r\n", err).as_bytes().to_vec(),
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
 
     mod request {
         use crate::errors::{AppError, ClientError};
-        use crate::http::Method::Get;
-        use crate::http::Request;
+        use crate::http::request::{Request, Method::Get};
         use crate::routes::Route::Echo;
         use std::collections::HashMap;
 
@@ -216,7 +162,7 @@ mod tests {
     mod response {
         use crate::constants::mime_types;
         use crate::errors::{ClientError::NotFound, ServerError::NotImplemented};
-        use crate::http::Response;
+        use crate::http::response::Response;
         #[test]
         fn client_error_response() {
             let expected = b"HTTP/1.1 404 Not Found\r\n\r\n".to_vec();

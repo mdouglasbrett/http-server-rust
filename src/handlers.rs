@@ -7,7 +7,7 @@ use crate::errors::{
     ClientError::{BadRequest, NotFound},
     ServerError::Internal,
 };
-use crate::http::{Request, Response};
+use crate::http::{request::Request, response::Response};
 use crate::utils::{get_header_value, get_path_parts, read_file, write_file};
 
 pub fn handle_empty<T: Write>(s: &mut T) -> Result<(), AppError> {

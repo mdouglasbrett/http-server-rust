@@ -7,7 +7,7 @@ use crate::errors::{AppError, ServerError};
 use crate::handlers::{
     handle_echo, handle_empty, handle_error, handle_get_file, handle_post_file, handle_user_agent,
 };
-use crate::http::{Method, Request};
+use crate::http::request::{Method, Request};
 use crate::routes::Route;
 
 pub fn request_router(
