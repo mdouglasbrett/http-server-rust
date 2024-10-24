@@ -9,6 +9,7 @@ use crate::errors::{AppError, ClientError, ServerError};
 use crate::routes::Route;
 use crate::utils::get_path_parts;
 
+#[derive(Debug, PartialEq)]
 pub enum Method {
     Get,
     Post,
@@ -28,12 +29,13 @@ impl From<Option<&str>> for Method {
 }
 
 // TODO: this is a temporary solution. Is there something better?
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum HeaderField {
     Single(String),
     Multiple(Vec<String>),
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Request {
     pub method: Method,
     pub route: Route,
@@ -44,8 +46,7 @@ pub struct Request {
 }
 
 impl Request {
-    pub fn try_new<T: Read>(value: &mut T) -> Result<Self, AppError>
-    {
+    pub fn try_new<T: Read>(value: &mut T) -> Result<Self, AppError> {
         let mut buf = BufReader::new(value);
         let mut start_line = String::new();
         let _ = buf.read_line(&mut start_line)?;
@@ -99,15 +100,19 @@ impl Request {
 
         let mut body_buf: Vec<u8> = vec![];
 
-        // If there's no content length, do not attempt to parse the body
-        if let Some(len) = headers.get("Content-Length") {
-            match len {
-                HeaderField::Single(len) => {
-                    let len = len.parse::<u64>()?;
-                    buf.take(len).read_to_end(&mut body_buf)?;
-                }
-                HeaderField::Multiple(_) => {
-                    return Err(ClientError::BadRequest.into());
+        if route == Route::Echo && path_parts.len() > 1 {
+            body_buf.extend(path_parts[1].as_bytes());
+        } else {
+            // If there's no content length, do not attempt to parse the body
+            if let Some(len) = headers.get("Content-Length") {
+                match len {
+                    HeaderField::Single(len) => {
+                        let len = len.parse::<u64>()?;
+                        buf.take(len).read_to_end(&mut body_buf)?;
+                    }
+                    HeaderField::Multiple(_) => {
+                        return Err(ClientError::BadRequest.into());
+                    }
                 }
             }
         }
@@ -122,21 +127,21 @@ impl Request {
     }
 }
 
-pub enum Response {
-    Ok(Option<(String, String, Option<String>)>),
+pub enum Response<'a> {
+    Ok(Option<(&'a [u8], String, Option<String>)>),
     Created,
     ClientError(ClientError),
     ServerError(ServerError),
 }
 
-impl Response {
+impl<'a> Response<'a> {
     pub fn to_vec(&self) -> Vec<u8> {
         match self {
             Self::Ok(Some((body, mime, encoding))) => {
                 // TODO: how do I reliably test this?
                 let content = if encoding.is_some() {
                     let mut b = GzEncoder::new(Vec::new(), Compression::default());
-                    let _ = b.write_all(body.as_bytes());
+                    let _ = b.write_all(body);
                     let compressed_body = b.finish();
                     if let Ok(bytes) = compressed_body {
                         bytes
@@ -146,7 +151,7 @@ impl Response {
                             .to_vec();
                     }
                 } else {
-                    body.as_bytes().to_vec()
+                    body.to_vec()
                 };
                 let mut response = format!(
                 "HTTP/1.1 200 OK\r\nContent-Type: {content_type}\r\nContent-Length: {content_length}\r\n{content_encoding}\r\n",
@@ -174,6 +179,26 @@ impl Response {
 
 #[cfg(test)]
 mod tests {
+
+    mod request {
+        use crate::http::Method::Get;
+        use crate::http::Request;
+        use crate::routes::Route::Echo;
+        use std::collections::HashMap;
+
+        #[test]
+        fn handles_http_request() {
+            let mut req = "GET /echo/abc HTTP/1.1\r\n\r\n".as_bytes();
+            let expected = Request {
+                method: Get,
+                route: Echo,
+                path: "/echo/abc".to_owned(),
+                body: "abc".as_bytes().to_vec(),
+                headers: HashMap::new(),
+            };
+            assert_eq!(expected, Request::try_new(&mut req).unwrap());
+        }
+    }
     mod response {
         use crate::errors::{ClientError::NotFound, ServerError::NotImplemented};
         use crate::http::Response;
@@ -201,7 +226,7 @@ mod tests {
             assert_eq!(
                 expected,
                 Response::Ok(Some((
-                    String::from("abc"),
+                    b"abc",
                     String::from("text/plain"),
                     None
                 )))
@@ -213,9 +238,5 @@ mod tests {
             let expected = "HTTP/1.1 200 OK\r\n\r\n".as_bytes().to_vec();
             assert_eq!(expected, Response::Ok(None).to_vec())
         }
-    }
-
-    mod request {
-        use crate::http::Request;
     }
 }

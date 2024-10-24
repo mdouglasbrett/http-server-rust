@@ -1,4 +1,4 @@
-use std::io::{Write};
+use std::io::Write;
 use std::sync::{Arc, Mutex};
 
 use crate::errors::{
@@ -16,10 +16,7 @@ pub fn handle_empty<T: Write>(s: &mut T) -> Result<(), AppError> {
 
 pub fn handle_echo<T: Write>(s: &mut T, r: &Request) -> Result<(), AppError> {
     let encoding = get_header_value("Accept-Encoding", &r.headers);
-    let body = get_path_parts(r.path.as_str())[1];
-    s.write_all(
-        &Response::Ok(Some((body.to_owned(), "text/plain".to_owned(), encoding))).to_vec(),
-    )?;
+    s.write_all(&Response::Ok(Some((&r.body, "text/plain".to_owned(), encoding))).to_vec())?;
     Ok(())
 }
 
@@ -30,7 +27,13 @@ pub fn handle_user_agent<T: Write>(s: &mut T, r: &Request) -> Result<(), AppErro
         return Err(BadRequest.into());
     } else {
         s.write_all(
-            &Response::Ok(Some((body.unwrap(), "text/plain".to_owned(), encoding))).to_vec(),
+            &Response::Ok(Some((
+                // TODO: remove this unwrap
+                body.unwrap().as_bytes(),
+                "text/plain".to_owned(),
+                encoding,
+            )))
+            .to_vec(),
         )?;
     }
     Ok(())
@@ -53,7 +56,7 @@ pub fn handle_get_file<T: Write>(
     } else {
         s.write_all(
             &Response::Ok(Some((
-                contents,
+                &contents,
                 "application/octet-stream".to_owned(),
                 encoding,
             )))

@@ -3,7 +3,7 @@ use std::fmt::{Debug, Display, Error as FmtErr, Formatter};
 use std::io::Error as IOError;
 use std::num::ParseIntError;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum ServerError {
     Internal,
     NotImplemented,
@@ -20,7 +20,7 @@ impl Display for ServerError {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum ClientError {
     NotFound,
     BadRequest,
