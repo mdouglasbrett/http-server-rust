@@ -1,6 +1,7 @@
 #![warn(clippy::style, clippy::complexity, clippy::perf, clippy::correctness)]
 
 use std::env;
+use std::net::TcpListener;
 
 mod constants;
 mod errors;
@@ -20,6 +21,7 @@ fn main() -> Result<(), AppError> {
     let _ = args.next();
     // --directory flag
     let _ = args.next();
+    let listener = TcpListener::bind("127.0.0.1:4221")?;
 
-    app_server(args.next())
+    app_server(args.next(), listener)
 }
