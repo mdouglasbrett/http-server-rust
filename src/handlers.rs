@@ -108,13 +108,13 @@ mod test {
         }
     }
     impl Write for MockStream {
-        fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        fn write(&mut self, _buf: &[u8]) -> std::io::Result<usize> {
             unimplemented!()
         }
         fn flush(&mut self) -> std::io::Result<()> {
             unimplemented!()
         }
-        fn write_all(&mut self, mut buf: &[u8]) -> std::io::Result<()> {
+        fn write_all(&mut self, buf: &[u8]) -> std::io::Result<()> {
             self.write_all_bytes.extend(buf);
             Ok(())
         }
