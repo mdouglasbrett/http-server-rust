@@ -2,14 +2,14 @@
 
 use std::env;
 
-pub mod constants;
-pub mod errors;
-pub mod handlers;
-pub mod http;
-pub mod router;
-pub mod routes;
-pub mod server;
-pub mod utils;
+mod constants;
+mod errors;
+mod handlers;
+mod http;
+mod router;
+mod routes;
+mod server;
+mod utils;
 
 use errors::AppError;
 use server::app_server;
