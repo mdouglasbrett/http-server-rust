@@ -15,8 +15,8 @@ pub fn get_path_parts(s: &str) -> Vec<&str> {
         .collect::<Vec<&str>>()
 }
 
-// TODO: this should change really - and could possibly be reduced just to the 
-// encoding filtering. Instead of matching on string slices, it should probably 
+// TODO: this should change really - and could possibly be reduced just to the
+// encoding filtering. Instead of matching on string slices, it should probably
 // be done via enum
 pub fn get_header_value(val: &str, headers: &HashMap<String, HeaderField>) -> Option<String> {
     let header_val = headers.get(val);
@@ -99,26 +99,31 @@ mod tests {
     mod get_header_value {
         use std::collections::HashMap;
 
-        use crate::{http::HeaderField, utils::get_header_value};
+        use crate::{
+            constants::headers as header_fields, http::HeaderField, utils::get_header_value,
+        };
 
         #[test]
         fn returns_correct_values() {
             let mut headers = HashMap::new();
             headers.insert(
-                "Content-Length".to_owned(),
+                header_fields::CONTENT_LENGTH.to_owned(),
                 HeaderField::Single("32".to_owned()),
             );
             let expected = Some(String::from("32"));
 
-            assert_eq!(expected, get_header_value("Content-Length", &headers));
-            assert_eq!(None, get_header_value("Accept-Encoding", &headers));
+            assert_eq!(
+                expected,
+                get_header_value(header_fields::CONTENT_LENGTH, &headers)
+            );
+            assert_eq!(None, get_header_value(header_fields::ACCEPT_ENCODING, &headers));
         }
 
         #[test]
         fn handles_enocoding_filtering() {
             let mut headers = HashMap::new();
             headers.insert(
-                "Accept-Encoding".to_owned(),
+                header_fields::ACCEPT_ENCODING.to_owned(),
                 HeaderField::Multiple(vec![
                     "gzip".to_owned(),
                     "brotli".to_owned(),
@@ -127,11 +132,11 @@ mod tests {
             );
             let expected = Some(String::from("gzip"));
 
-            assert_eq!(expected, get_header_value("Accept-Encoding", &headers));
+            assert_eq!(expected, get_header_value(header_fields::ACCEPT_ENCODING, &headers));
 
             let mut headers = HashMap::new();
             headers.insert(
-                "Accept-Encoding".to_owned(),
+                header_fields::ACCEPT_ENCODING.to_owned(),
                 HeaderField::Multiple(vec![
                     "blah".to_owned(),
                     "brotli".to_owned(),
@@ -139,7 +144,7 @@ mod tests {
                 ]),
             );
 
-            assert_eq!(None, get_header_value("Accept-Encoding", &headers));
+            assert_eq!(None, get_header_value(header_fields::ACCEPT_ENCODING, &headers));
         }
     }
 }

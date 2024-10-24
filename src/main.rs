@@ -10,6 +10,7 @@ pub mod http;
 pub mod router;
 pub mod routes;
 pub mod utils;
+pub mod constants;
 
 use crate::errors::AppError;
 use crate::router::request_router;

@@ -5,6 +5,7 @@ use std::{
 
 use flate2::{write::GzEncoder, Compression};
 
+use crate::constants::{headers as header_fields};
 use crate::errors::{AppError, ClientError, ServerError};
 use crate::routes::Route;
 use crate::utils::get_path_parts;
@@ -92,7 +93,7 @@ impl Request {
                 .collect::<Vec<&str>>();
             let key = key_value[0];
             let raw_value = key_value[1].trim();
-            let value = if key == "Accept-Encoding" {
+            let value = if key == header_fields::ACCEPT_ENCODING {
                 HeaderField::Multiple(raw_value.split(", ").map(|s| s.to_owned()).collect())
             } else {
                 HeaderField::Single(raw_value.to_owned())
@@ -106,7 +107,7 @@ impl Request {
             body_buf.extend(path_parts[1].as_bytes());
         } else {
             // If there's no content length, do not attempt to parse the body
-            if let Some(len) = headers.get("Content-Length") {
+            if let Some(len) = headers.get(header_fields::CONTENT_LENGTH) {
                 match len {
                     HeaderField::Single(len) => {
                         let len = len.parse::<u64>()?;
@@ -213,6 +214,7 @@ mod tests {
         }
     }
     mod response {
+        use crate::constants::mime_types;
         use crate::errors::{ClientError::NotFound, ServerError::NotImplemented};
         use crate::http::Response;
         #[test]
@@ -237,7 +239,7 @@ mod tests {
                     .to_vec();
             assert_eq!(
                 expected,
-                Response::Ok(Some((b"abc", String::from("text/plain"), None))).to_vec()
+                Response::Ok(Some((b"abc", String::from(mime_types::PLAIN_TEXT), None))).to_vec()
             );
         }
         #[test]
