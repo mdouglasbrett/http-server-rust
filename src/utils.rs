@@ -4,6 +4,7 @@ use std::io::Write;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 
+use crate::constants::headers::ACCEPT_ENCODING;
 use crate::errors::{AppError, ClientError, ServerError};
 use crate::http::request::{HeaderField, Request};
 
@@ -21,7 +22,7 @@ pub fn get_path_parts(s: &str) -> Vec<&str> {
 pub fn get_header_value(val: &str, headers: &HashMap<String, HeaderField>) -> Option<String> {
     let header_val = headers.get(val);
     match val {
-        "Accept-Encoding" => match header_val {
+        ACCEPT_ENCODING => match header_val {
             Some(HeaderField::Multiple(v)) => {
                 let filtered_encodings = v
                     .iter()
@@ -52,7 +53,7 @@ pub fn read_file(fp: Arc<Mutex<Option<String>>>, filename: &str) -> Result<Vec<u
     let partial_path = &fp.lock().unwrap().clone().unwrap();
     let path = Path::new(partial_path).join(filename);
     if let Ok(val) = Path::try_exists(&path) {
-        if val == true {
+        if val {
             let file_contents = fs::read(path)?;
             Ok(file_contents)
         } else {

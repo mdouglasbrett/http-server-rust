@@ -1,7 +1,10 @@
-use std::io::Write;
 use flate2::{write::GzEncoder, Compression};
+use std::io::Write;
 
-use crate::errors::{ClientError, ServerError};
+use crate::{
+    constants::headers::{CONTENT_ENCONDING, CONTENT_LENGTH, CONTENT_TYPE},
+    errors::{ClientError, ServerError},
+};
 
 pub enum Response<'a> {
     Ok(Option<(&'a [u8], String, Option<String>)>),
@@ -31,10 +34,12 @@ impl<'a> Response<'a> {
                     body.to_vec()
                 };
                 let mut response = format!(
-                "HTTP/1.1 200 OK\r\nContent-Type: {content_type}\r\nContent-Length: {content_length}\r\n{content_encoding}\r\n",
+                "HTTP/1.1 200 OK\r\n{}: {content_type}\r\n{}: {content_length}\r\n{content_encoding}\r\n",
+                CONTENT_TYPE,
+                CONTENT_LENGTH,
                 content_type = mime,
                 content_encoding = match encoding {
-                    Some(e) => format!("Content-Encoding: {}\r\n", e),
+                    Some(e) => format!("{}: {}\r\n",CONTENT_ENCONDING, e),
                     None => "".to_owned()
                 },
                 content_length = content.len(),)

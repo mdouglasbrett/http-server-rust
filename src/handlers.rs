@@ -4,7 +4,7 @@ use std::sync::{Arc, Mutex};
 use crate::constants::{headers, mime_types};
 use crate::errors::{
     AppError,
-    ClientError::{BadRequest, NotFound},
+    ClientError::BadRequest,
     ServerError::Internal,
 };
 use crate::http::{request::Request, response::Response};

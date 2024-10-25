@@ -3,6 +3,7 @@ pub mod headers {
     pub const CONTENT_LENGTH: &str = "Content-Length";
     pub const CONTENT_ENCONDING: &str = "Content-Encoding";
     pub const ACCEPT_ENCODING: &str = "Accept-Encoding";
+    pub const CONTENT_TYPE: &str = "Content-Type";
 }
 
 pub mod mime_types {
