@@ -159,39 +159,4 @@ mod tests {
             );
         }
     }
-    mod response {
-        use crate::constants::mime_types;
-        use crate::errors::{ClientError::NotFound, ServerError::NotImplemented};
-        use crate::http::response::Response;
-        #[test]
-        fn client_error_response() {
-            let expected = b"HTTP/1.1 404 Not Found\r\n\r\n".to_vec();
-            assert_eq!(expected, Response::ClientError(NotFound).to_vec());
-        }
-        #[test]
-        fn server_error_response() {
-            let expected = b"HTTP/1.1 501 Not Implemented\r\n\r\n".to_vec();
-            assert_eq!(expected, Response::ServerError(NotImplemented).to_vec());
-        }
-        #[test]
-        fn created_response() {
-            let expected = b"HTTP/1.1 201 Created\r\n\r\n".to_vec();
-            assert_eq!(expected, Response::Created.to_vec());
-        }
-        #[test]
-        fn ok_response() {
-            let expected =
-                b"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 3\r\n\r\nabc"
-                    .to_vec();
-            assert_eq!(
-                expected,
-                Response::Ok(Some((b"abc", String::from(mime_types::PLAIN_TEXT), None))).to_vec()
-            );
-        }
-        #[test]
-        fn empty_response() {
-            let expected = b"HTTP/1.1 200 OK\r\n\r\n".to_vec();
-            assert_eq!(expected, Response::Ok(None).to_vec())
-        }
-    }
 }
