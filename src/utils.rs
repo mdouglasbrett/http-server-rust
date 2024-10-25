@@ -4,7 +4,7 @@ use std::io::Write;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 
-use crate::errors::AppError;
+use crate::errors::{AppError, ClientError, ServerError};
 use crate::http::request::{HeaderField, Request};
 
 const ALLOWED_ENCODING: &str = "gzip";
@@ -51,8 +51,16 @@ pub fn read_file(fp: Arc<Mutex<Option<String>>>, filename: &str) -> Result<Vec<u
     // TODO: I really don't like this unwrap/clone/unwrap dance
     let partial_path = &fp.lock().unwrap().clone().unwrap();
     let path = Path::new(partial_path).join(filename);
-    let file_contents = fs::read(path)?;
-    Ok(file_contents)
+    if let Ok(val) = Path::try_exists(&path) {
+        if val == true {
+            let file_contents = fs::read(path)?;
+            Ok(file_contents)
+        } else {
+            Err(ClientError::NotFound.into())
+        }
+    } else {
+        Err(ServerError::Internal.into())
+    }
 }
 
 pub fn write_file(
@@ -64,6 +72,7 @@ pub fn write_file(
     let path_inner = fp.lock().unwrap().clone().unwrap();
     let path = Path::new(&path_inner);
     let file_path = path.join(filename);
+    // TODO: get rid of this unwrap
     if Path::try_exists(&file_path).unwrap() {
         fs::write(&file_path, &req.body)?;
         Ok(())
@@ -100,7 +109,8 @@ mod tests {
         use std::collections::HashMap;
 
         use crate::{
-            constants::headers as header_fields, http::request::HeaderField, utils::get_header_value,
+            constants::headers as header_fields, http::request::HeaderField,
+            utils::get_header_value,
         };
 
         #[test]
