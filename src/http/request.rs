@@ -4,9 +4,10 @@ use std::{
 };
 
 use crate::constants::headers as header_fields;
-use crate::errors::{AppError, ClientError, ServerError};
+use crate::errors::{ClientError, ServerError};
 use crate::routes::Route;
 use crate::utils::get_path_parts;
+use crate::Result;
 
 #[derive(Debug, PartialEq)]
 pub enum Method {
@@ -47,7 +48,7 @@ pub struct Request {
 }
 
 impl Request {
-    pub fn try_new<T: Read>(value: &mut T) -> Result<Self, AppError> {
+    pub fn try_new<T: Read>(value: &mut T) -> Result<Self> {
         let mut buf = BufReader::new(value);
         let mut start_line = String::new();
         let _ = buf.read_line(&mut start_line)?;
@@ -133,7 +134,7 @@ mod tests {
 
     mod request {
         use crate::errors::{AppError, ClientError};
-        use crate::http::request::{Request, Method::Get};
+        use crate::http::request::{Method::Get, Request};
         use crate::routes::Route::Echo;
         use std::collections::HashMap;
 

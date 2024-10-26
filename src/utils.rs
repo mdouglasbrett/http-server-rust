@@ -5,8 +5,9 @@ use std::path::Path;
 use std::sync::{Arc, Mutex};
 
 use crate::constants::headers::ACCEPT_ENCODING;
-use crate::errors::{AppError, ClientError, ServerError};
+use crate::errors::{ClientError, ServerError};
 use crate::http::request::{HeaderField, Request};
+use crate::Result;
 
 const ALLOWED_ENCODING: &str = "gzip";
 
@@ -48,7 +49,7 @@ pub fn get_header_value(val: &str, headers: &HashMap<String, HeaderField>) -> Op
 
 // TODO: these functions are going to be interesting to test...
 // TODO: pass readers and writers to these?
-pub fn read_file(fp: Arc<Mutex<Option<String>>>, filename: &str) -> Result<Vec<u8>, AppError> {
+pub fn read_file(fp: Arc<Mutex<Option<String>>>, filename: &str) -> Result<Vec<u8>> {
     // TODO: I really don't like this unwrap/clone/unwrap dance
     let partial_path = &fp.lock().unwrap().clone().unwrap();
     let path = Path::new(partial_path).join(filename);
@@ -64,11 +65,7 @@ pub fn read_file(fp: Arc<Mutex<Option<String>>>, filename: &str) -> Result<Vec<u
     }
 }
 
-pub fn write_file(
-    fp: Arc<Mutex<Option<String>>>,
-    filename: &str,
-    req: &Request,
-) -> Result<(), AppError> {
+pub fn write_file(fp: Arc<Mutex<Option<String>>>, filename: &str, req: &Request) -> Result<()> {
     // TODO: I really don't like this unwrap/clone/unwrap dance
     let path_inner = fp.lock().unwrap().clone().unwrap();
     let path = Path::new(&path_inner);

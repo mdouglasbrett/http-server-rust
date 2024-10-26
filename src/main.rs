@@ -15,7 +15,9 @@ mod utils;
 use errors::AppError;
 use server::app_server;
 
-fn main() -> Result<(), AppError> {
+pub type Result<T> = std::result::Result<T, AppError>;
+
+fn main() -> Result<()> {
     // TODO: cli front end
     let mut args = env::args();
     let _ = args.next();

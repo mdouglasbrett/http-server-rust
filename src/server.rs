@@ -1,11 +1,10 @@
 use std::net::TcpListener;
 use std::sync::{Arc, Mutex};
 
-use crate::errors::AppError;
 use crate::router::request_router;
+use crate::Result;
 
-
-pub fn app_server(filepath: Option<String>, listener: TcpListener) -> Result<(), AppError> {
+pub fn app_server(filepath: Option<String>, listener: TcpListener) -> Result<()> {
     let partial_file_path = Arc::new(Mutex::new(filepath));
 
     // TODO: naive!! Should I be doing this in a pool?
