@@ -7,4 +7,5 @@ rust-version = "1.80"
 
 [dependencies]
 flate2 = "1.0"
+lexopt = "0.3.0"
 
