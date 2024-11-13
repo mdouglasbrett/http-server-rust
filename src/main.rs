@@ -1,8 +1,5 @@
 #![warn(clippy::style, clippy::complexity, clippy::perf, clippy::correctness)]
 
-use std::env;
-use std::net::TcpListener;
-
 mod constants;
 mod errors;
 mod handlers;
@@ -12,32 +9,37 @@ mod routes;
 mod server;
 mod utils;
 
+use constants::defaults;
 use errors::AppError;
 use server::app_server;
 
 pub type Result<T> = std::result::Result<T, AppError>;
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct Config {
-    dir: String,
-    port: String,
+    target_dir: String,
+    address: String,
 }
 
 impl Config {
-    fn parse() -> Result<Self> {
+    fn new() -> Self {
+        // TODO: implement options
         use lexopt::prelude::*;
-        let mut config = Config::default();
-        Ok(config)
+        // TODO: we will fall back to default if lexopt errors out
+        Config::default()
+    }
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            target_dir: defaults::TARGET_DIR.to_owned(),
+            address: defaults::ADDRESS.to_owned(),
+        }
     }
 }
 
 fn main() -> Result<()> {
-    let mut args = env::args();
-    let _ = args.next();
-    // --directory flag
-    let _ = args.next();
-    let listener = TcpListener::bind("127.0.0.1:4221")?;
-
-    // TODO: pass a Config object
-    app_server(args.next(), listener)
+    let config = Config::new();
+    app_server(config)
 }
