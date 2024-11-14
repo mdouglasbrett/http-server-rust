@@ -1,8 +1,9 @@
 use std::net::TcpListener;
 use std::sync::{Arc, Mutex};
 
+use crate::config::Config;
 use crate::router::request_router;
-use crate::{Config, Result};
+use crate::Result;
 
 pub fn app_server(config: Config) -> Result<()> {
     let listener = TcpListener::bind(config.address)?;
