@@ -9,9 +9,35 @@ pub struct Config {
 
 impl Config {
     pub fn new() -> Self {
-        // TODO: implement option
-        // TODO: we will fall back to default if lexopt errors out
-        Config::default()
+        let mut parser = lexopt::Parser::from_env();
+        let mut config = Config::default();
+        while let Ok(Some(arg)) = parser.next() {
+            match arg {
+                Short('t') | Long("target_dir") => {
+                    if let Ok(val) = parser.value() {
+                        if let Ok(parsed_val) = val.parse() {
+                            config.target_dir = parsed_val;
+                        }
+                    }
+                }
+                Short('a') | Long("address") => {
+                    if let Ok(val) = parser.value() {
+                        if let Ok(parsed_val) = val.parse() {
+                            config.address = parsed_val;
+                        }
+                    }
+                }
+                Short('h') | Long("help") => {
+                    println!("Usage: cargo run -- [-t | --target_dir=TARGET_DIR] [-a | --adress=ADDRESS]");
+                    std::process::exit(0);
+                }
+                _ => {
+                    println!("Error: cargo run -- [-h | --help] for usage");
+                    std::process::exit(1);
+                }
+            }
+        }
+        config
     }
 }
 
