@@ -15,7 +15,7 @@ curl -v --data "Hello! From file 234" -H "Content-Type: application/octet-stream
 
 TODO:
 
-- [x] code clean up
-- [x] add proper error handling
-- [ ] tests - previously tested via codecrafters service
-- [ ] add cli front end
+- [ ] handle subdir creation issue and add test
+- [ ] remove redundant option in Mutex
+- [ ] update `README` with testing `curl`s
+- [ ] thread pool?

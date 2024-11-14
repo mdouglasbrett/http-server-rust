@@ -3,7 +3,7 @@ use lexopt::prelude::*;
 
 #[derive(Debug)]
 pub struct Config {
-    pub target_dir: String,
+    pub directory: String,
     pub address: String,
 }
 
@@ -16,7 +16,7 @@ impl Config {
                 Short('t') | Long("target_dir") => {
                     if let Ok(val) = parser.value() {
                         if let Ok(parsed_val) = val.parse() {
-                            config.target_dir = parsed_val;
+                            config.directory = parsed_val;
                         }
                     }
                 }
@@ -44,7 +44,7 @@ impl Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            target_dir: defaults::TARGET_DIR.to_owned(),
+            directory: defaults::TARGET_DIR.to_owned(),
             address: defaults::ADDRESS.to_owned(),
         }
     }

@@ -7,8 +7,8 @@ use crate::Result;
 
 pub fn app_server(config: Config) -> Result<()> {
     let listener = TcpListener::bind(config.address)?;
-    // TODO: this is temporary...
-    let partial_file_path = Arc::new(Mutex::new(Some(config.target_dir)));
+    // TODO: this Option is temporary, update the type...
+    let partial_file_path = Arc::new(Mutex::new(Some(config.directory)));
 
     // TODO: naive!! Should I be doing this in a pool?
     for stream in listener.incoming() {
