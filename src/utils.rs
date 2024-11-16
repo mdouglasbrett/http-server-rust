@@ -71,11 +71,11 @@ pub fn write_file(fp: Arc<Mutex<Option<String>>>, filename: &str, req: &Request)
     let path = Path::new(&path_inner);
     let file_path = path.join(filename);
     // TODO: get rid of this unwrap
-    if Path::try_exists(&file_path).unwrap() {
+    if Path::try_exists(&file_path)? {
         fs::write(&file_path, &req.body)?;
         Ok(())
     } else {
-        let mut file = fs::File::create(file_path).unwrap();
+        let mut file = fs::File::create(file_path)?;
         file.write_all(&req.body)?;
         Ok(())
     }
