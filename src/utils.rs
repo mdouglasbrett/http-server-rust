@@ -48,7 +48,7 @@ pub fn get_header_value(val: &str, headers: &HashMap<String, HeaderField>) -> Op
 }
 
 pub fn check_directory(dir: &str) -> bool {
-    let path = std::path::Path::new(dir);
+    let path = Path::new(dir);
     path.exists() && path.is_dir()
 }
 
