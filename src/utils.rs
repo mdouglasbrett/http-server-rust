@@ -47,6 +47,11 @@ pub fn get_header_value(val: &str, headers: &HashMap<String, HeaderField>) -> Op
     }
 }
 
+pub fn check_directory(dir: &str) -> bool {
+    let path = std::path::Path::new(dir);
+    path.exists() && path.is_dir()
+}
+
 // TODO: these functions are going to be interesting to test...
 // TODO: pass readers and writers to these?
 pub fn read_file(fp: Arc<Mutex<Option<String>>>, filename: &str) -> Result<Vec<u8>> {
