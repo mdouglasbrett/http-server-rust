@@ -1,5 +1,5 @@
 use std::io::Write;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use crate::constants::{headers, mime_types};
 use crate::errors::{AppError, ClientError::BadRequest, ServerError::Internal};

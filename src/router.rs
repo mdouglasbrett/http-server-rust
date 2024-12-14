@@ -1,6 +1,6 @@
 use std::{
     io::{Read, Write},
-    sync::{Arc, Mutex},
+    sync::Arc,
 };
 
 use crate::errors::{ClientError, ServerError};
