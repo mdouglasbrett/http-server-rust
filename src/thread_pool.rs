@@ -37,6 +37,23 @@ impl ThreadPool {
     }
 }
 
+impl Drop for ThreadPool {
+    fn drop(&mut self) {
+        for _ in &self.workers {
+            self.sender
+                .send(Message::Terminate)
+                .expect("TODO: handle this?");
+        }
+
+        for worker in &mut self.workers {
+            if let Some(thread) = worker.thread.take() {
+                println!("Attempting to complete worker {}", worker.id);
+                thread.join().expect("TODO: handle this?");
+            }
+        }
+    }
+}
+
 pub struct Worker {
     id: usize,
     thread: Option<thread::JoinHandle<()>>,
