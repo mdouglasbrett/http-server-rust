@@ -54,10 +54,9 @@ pub fn check_directory(dir: &str) -> bool {
 
 // TODO: these functions are going to be interesting to test...
 // TODO: pass readers and writers to these?
-pub fn read_file(fp: Arc<Mutex<Option<String>>>, filename: &str) -> Result<Vec<u8>> {
-    // TODO: I really don't like this unwrap/clone/unwrap dance
-    let partial_path = &fp.lock().unwrap().clone().unwrap();
-    let path = Path::new(partial_path).join(filename);
+pub fn read_file(fp: Arc<String>, filename: &str) -> Result<Vec<u8>> {
+    // Clone Arc, then dereference to get the inner value
+    let path = Path::new(&*fp.clone()).join(filename);
     if let Ok(val) = Path::try_exists(&path) {
         if val {
             let file_contents = fs::read(path)?;
@@ -70,12 +69,9 @@ pub fn read_file(fp: Arc<Mutex<Option<String>>>, filename: &str) -> Result<Vec<u
     }
 }
 
-pub fn write_file(fp: Arc<Mutex<Option<String>>>, filename: &str, req: &Request) -> Result<()> {
-    // TODO: I really don't like this unwrap/clone/unwrap dance
-    let path_inner = fp.lock().unwrap().clone().unwrap();
-    let path = Path::new(&path_inner);
-    let file_path = path.join(filename);
-    // TODO: get rid of this unwrap
+pub fn write_file(fp: Arc<String>, filename: &str, req: &Request) -> Result<()> {
+    // Clone Arc, then dereference to get the inner value
+    let file_path = Path::new(&*fp.clone()).join(filename);
     if Path::try_exists(&file_path)? {
         fs::write(&file_path, &req.body)?;
         Ok(())

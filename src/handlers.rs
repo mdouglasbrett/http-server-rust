@@ -36,11 +36,7 @@ pub fn handle_user_agent<T: Write>(s: &mut T, r: &Request) -> Result<()> {
     Ok(())
 }
 
-pub fn handle_get_file<T: Write>(
-    s: &mut T,
-    r: &Request,
-    fp: Arc<Mutex<Option<String>>>,
-) -> Result<()> {
+pub fn handle_get_file<T: Write>(s: &mut T, r: &Request, fp: Arc<String>) -> Result<()> {
     let filename = get_path_parts(&r.path)[1];
     let contents = read_file(fp, filename)?;
     let encoding = get_header_value(headers::ACCEPT_ENCODING, &r.headers);
@@ -53,11 +49,7 @@ pub fn handle_get_file<T: Write>(
     Ok(())
 }
 
-pub fn handle_post_file<T: Write>(
-    s: &mut T,
-    r: &Request,
-    fp: Arc<Mutex<Option<String>>>,
-) -> Result<()> {
+pub fn handle_post_file<T: Write>(s: &mut T, r: &Request, fp: Arc<String>) -> Result<()> {
     let filename = get_path_parts(&r.path)[1];
     if !r.body.is_empty() {
         write_file(fp, filename, r)?;

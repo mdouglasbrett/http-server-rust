@@ -9,7 +9,7 @@ pub fn app_server(config: Config) -> Result<()> {
     let listener = TcpListener::bind(&config.address)?;
     println!("Server listening on: {}", config.address);
     // TODO: this Option is temporary, update the type...
-    let partial_file_path = Arc::new(Mutex::new(Some(config.directory)));
+    let partial_file_path = Arc::new(config.directory);
 
     // TODO: naive!! Should I be doing this in a pool?
     for stream in listener.incoming() {

@@ -11,10 +11,7 @@ use crate::http::request::{Method, Request};
 use crate::routes::Route;
 use crate::Result;
 
-pub fn request_router<T: Read + Write>(
-    mut stream: T,
-    file_path: Arc<Mutex<Option<String>>>,
-) -> Result<()> {
+pub fn request_router<T: Read + Write>(mut stream: T, file_path: Arc<String>) -> Result<()> {
     match Request::try_new(&mut stream) {
         Ok(req) => {
             if let Err(e) = match (&req.method, &req.route) {
