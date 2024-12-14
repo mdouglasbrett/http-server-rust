@@ -8,6 +8,7 @@ mod http;
 mod router;
 mod routes;
 mod server;
+mod thread_pool;
 mod utils;
 
 use config::Config;
@@ -16,7 +17,6 @@ use server::app_server;
 use utils::check_directory;
 
 pub type Result<T> = std::result::Result<T, AppError>;
-
 
 fn main() -> Result<()> {
     let config = Config::new();
