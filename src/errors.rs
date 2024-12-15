@@ -4,6 +4,18 @@ use std::io::Error as IOError;
 use std::num::ParseIntError;
 
 #[derive(Debug, PartialEq)]
+pub enum ThreadPoolError {}
+
+// TODO: this is a placeholder implementation
+impl Display for ThreadPoolError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), FmtErr> {
+        write!(f, "ThreadPoolError")
+    }
+}
+
+impl Error for ThreadPoolError {}
+
+#[derive(Debug, PartialEq)]
 pub enum ServerError {
     Internal,
     NotImplemented,
@@ -43,6 +55,7 @@ pub enum AppError {
     Server(ServerError),
     IO(String),
     Parse(ParseIntError),
+    ThreadPool(ThreadPoolError),
 }
 
 impl Error for AppError {}
@@ -74,5 +87,11 @@ impl From<IOError> for AppError {
 impl From<ParseIntError> for AppError {
     fn from(error: ParseIntError) -> Self {
         Self::Parse(error)
+    }
+}
+
+impl From<ThreadPoolError> for AppError {
+    fn from(error: ThreadPoolError) -> Self {
+        Self::ThreadPool(error)
     }
 }

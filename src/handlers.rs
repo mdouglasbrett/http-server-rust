@@ -67,6 +67,7 @@ pub fn handle_error<T: Write>(s: &mut T, err: AppError) -> Result<()> {
         AppError::Client(e) => s.write_all(&Response::ClientError(e).to_vec())?,
         AppError::IO(_) => s.write_all(&Response::ServerError(Internal).to_vec())?,
         AppError::Parse(_) => s.write_all(&Response::ClientError(BadRequest).to_vec())?,
+        AppError::ThreadPool(_) => s.write_all(&Response::ServerError(Internal).to_vec())?,
     }
     Ok(())
 }
