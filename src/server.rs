@@ -3,6 +3,8 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 
+use log::{error, info};
+
 use crate::config::Config;
 use crate::router::request_router;
 use crate::thread_pool::ThreadPool;
@@ -11,7 +13,7 @@ use crate::Result;
 pub fn app_server(config: Config) -> Result<()> {
     let listener = TcpListener::bind(&config.address)?;
     listener.set_nonblocking(true)?;
-    println!("Server listening on: {}", config.address);
+    info!("Server listening on: {}", config.address);
     let partial_file_path = Arc::new(config.directory);
     let pool = ThreadPool::new(8);
 
@@ -19,7 +21,7 @@ pub fn app_server(config: Config) -> Result<()> {
     let r = Arc::clone(&running);
 
     ctrlc::set_handler(move || {
-        println!("Starting shutdown...");
+        info!("Starting shutdown...");
         r.store(false, Ordering::SeqCst);
     })
     .expect("TODO: handle ctrlc error");
@@ -27,14 +29,14 @@ pub fn app_server(config: Config) -> Result<()> {
     while running.load(Ordering::SeqCst) {
         match listener.accept() {
             Ok((stream, addr)) => {
-                println!("Connection from: {}", addr);
+                info!("Connection from: {}", addr);
                 let path = Arc::clone(&partial_file_path);
                 pool.execute(move || {
                     // TODO: error handling here, should I just eprintln! and continue?
-                    if let Err(_e) = request_router(stream, path) {
-                        // Err(e)
+                    if let Err(e) = request_router(stream, path) {
+                        error!("Error handling request, {}", e);
                     } else {
-                        // Ok(())
+                        info!("Request handled OK");
                     }
                 });
             }
@@ -45,14 +47,14 @@ pub fn app_server(config: Config) -> Result<()> {
             }
             // If there is an error accepting a connection, we'll just print it and continue
             Err(e) => {
-                eprintln!("Connection error: {:?}", e);
+                error!("Connection error: {:?}", e);
                 continue;
             }
         }
     }
 
-    println!("Shutting down server...");
+    info!("Shutting down server...");
     drop(pool);
-    println!("Server shutdown complete.");
+    info!("Server shutdown complete.");
     Ok(())
 }

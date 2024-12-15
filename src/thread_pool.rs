@@ -1,3 +1,4 @@
+use log::info;
 use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
 
@@ -47,7 +48,7 @@ impl Drop for ThreadPool {
 
         for worker in &mut self.workers {
             if let Some(thread) = worker.thread.take() {
-                println!("Attempting to complete worker {}", worker.id);
+                info!("Attempting to complete worker {}", worker.id);
                 thread.join().expect("TODO: handle this?");
             }
         }
@@ -72,11 +73,11 @@ impl Worker {
             // TODO: logging, how am I doing it elsewhere in the crate - be consistent
             match message {
                 Message::NewJob(job) => {
-                    println!("Worker {} got a job; executing.", id);
+                    info!("Worker {} got a job; executing.", id);
                     job();
                 }
                 Message::Terminate => {
-                    println!("Worker {} terminating.", id);
+                    info!("Worker {} terminating.", id);
                     break;
                 }
             }
