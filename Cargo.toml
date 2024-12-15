@@ -1,11 +1,13 @@
 [package]
 name = "codecrafters-http-server"
 version = "0.2.0"
-authors = ["Codecrafters <hello@codecrafters.io>, Michael Brett <mdouglasbrett@icloud.com>"]
+authors = [
+    "Codecrafters <hello@codecrafters.io>, Michael Brett <mdouglasbrett@icloud.com>",
+]
 edition = "2021"
 rust-version = "1.80"
 
 [dependencies]
 flate2 = "1.0"
 lexopt = "0.3.0"
-
+ctrlc = "3.4"
