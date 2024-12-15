@@ -9,6 +9,7 @@ This project is an HTTP server written in Rust, created as part of the Codecraft
 - **GET /files/:filename**: Serves static files from a specified directory.
 - **POST /files/:filename**: Saves the request body as a file in the specified directory.
 - **Gzip Compression**: Supports gzip compression for responses if requested by the client.
+- **Thread Pool**: Handles concurrent connections using a fixed-size thread pool for improved performance under load.
 
 ## Project Structure
 
@@ -22,6 +23,7 @@ This project is an HTTP server written in Rust, created as part of the Codecraft
 - `src/router.rs`: Request routing logic.
 - `src/routes.rs`: Route definitions.
 - `src/server.rs`: Server setup and connection handling.
+- `src/thread_pool.rs`: Thread pool implementation for handling concurrent connections.
 - `src/utils.rs`: Utility functions.
 
 ## Getting Started
