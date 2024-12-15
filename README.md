@@ -112,6 +112,12 @@ This will execute all the tests and display the results.
 
 TODO:
 
-- [ ] handle subdir creation issue and add test
-- [ ] remove redundant option in Mutex
-- [ ] thread pool?
+- [ ] handle subdir creation issue and add tests
+- [ ] add more test coverage
+- [ ] flesh out error handling further
+- [ ] add documentation
+- [ ] add graceful shutdown
+- [ ] add logging
+- [ ] possibly revisit module structure
+- [ ] add benchmarks
+- [ ] fork and refactor to use async/await
