@@ -67,7 +67,6 @@ impl Worker {
             loop {
                 let message = receiver.lock()?.recv()?;
 
-                // TODO: logging, how am I doing it elsewhere in the crate - be consistent
                 match message {
                     Message::NewJob(job) => {
                         info!("Worker {} got a job; executing.", id);
