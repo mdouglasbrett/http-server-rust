@@ -1,4 +1,5 @@
-use log::info;
+use crate::Result;
+use log::{error, info};
 use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
 
@@ -29,12 +30,10 @@ impl ThreadPool {
         Self { workers, sender }
     }
 
-    pub fn execute<F: FnOnce() + Send + 'static>(&self, f: F) {
+    pub fn execute<F: FnOnce() + Send + 'static>(&self, f: F) -> Result<()> {
         let job = Box::new(f);
-        // TODO: error handling here
-        self.sender
-            .send(Message::NewJob(job))
-            .expect("TODO: handle this?");
+        self.sender.send(Message::NewJob(job))?;
+        Ok(())
     }
 }
 
@@ -43,13 +42,15 @@ impl Drop for ThreadPool {
         for _ in &self.workers {
             self.sender
                 .send(Message::Terminate)
-                .expect("TODO: handle this?");
+                .unwrap_or_else(|e| error!("Error sending termination message: {:?}", e));
         }
 
         for worker in &mut self.workers {
             if let Some(thread) = worker.thread.take() {
                 info!("Attempting to complete worker {}", worker.id);
-                thread.join().expect("TODO: handle this?");
+                if let Err(e) = thread.join() {
+                    error!("Error completing worker {}: {:?}", worker.id, e);
+                }
             }
         }
     }
@@ -57,30 +58,29 @@ impl Drop for ThreadPool {
 
 pub struct Worker {
     id: usize,
-    thread: Option<thread::JoinHandle<()>>,
+    thread: Option<thread::JoinHandle<Result<()>>>,
 }
 
 impl Worker {
     fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Message>>>) -> Self {
-        let thread = thread::spawn(move || loop {
-            // TODO: error handling here
-            let message = receiver
-                .lock()
-                .expect("TODO: handle this?")
-                .recv()
-                .expect("TODO: handle this?");
+        let thread = thread::spawn(move || -> Result<()> {
+            loop {
+                let message = receiver.lock()?.recv()?;
 
-            // TODO: logging, how am I doing it elsewhere in the crate - be consistent
-            match message {
-                Message::NewJob(job) => {
-                    info!("Worker {} got a job; executing.", id);
-                    job();
-                }
-                Message::Terminate => {
-                    info!("Worker {} terminating.", id);
-                    break;
+                // TODO: logging, how am I doing it elsewhere in the crate - be consistent
+                match message {
+                    Message::NewJob(job) => {
+                        info!("Worker {} got a job; executing.", id);
+                        job();
+                    }
+                    Message::Terminate => {
+                        info!("Worker {} terminating.", id);
+                        break;
+                    }
                 }
             }
+
+            Ok(())
         });
         Self {
             id,

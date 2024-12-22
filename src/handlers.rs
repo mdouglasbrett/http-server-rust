@@ -2,7 +2,7 @@ use std::io::Write;
 use std::sync::Arc;
 
 use crate::constants::{headers, mime_types};
-use crate::errors::{AppError, ClientError::BadRequest, ServerError::Internal};
+use crate::errors::{AppError, ClientError::BadRequest};
 use crate::http::{request::Request, response::Response};
 use crate::utils::{get_header_value, get_path_parts, read_file, write_file};
 use crate::Result;
@@ -65,9 +65,6 @@ pub fn handle_error<T: Write>(s: &mut T, err: AppError) -> Result<()> {
     match err {
         AppError::Server(e) => s.write_all(&Response::ServerError(e).to_vec())?,
         AppError::Client(e) => s.write_all(&Response::ClientError(e).to_vec())?,
-        AppError::IO(_) => s.write_all(&Response::ServerError(Internal).to_vec())?,
-        AppError::Parse(_) => s.write_all(&Response::ClientError(BadRequest).to_vec())?,
-        AppError::ThreadPool(_) => s.write_all(&Response::ServerError(Internal).to_vec())?,
     }
     Ok(())
 }

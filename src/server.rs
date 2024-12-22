@@ -24,7 +24,7 @@ pub fn app_server(config: Config) -> Result<()> {
         info!("Starting shutdown...");
         r.store(false, Ordering::SeqCst);
     })
-    .expect("TODO: handle ctrlc error");
+    .expect("Graceful shutdown failed!");
 
     while running.load(Ordering::SeqCst) {
         match listener.accept() {
@@ -32,13 +32,12 @@ pub fn app_server(config: Config) -> Result<()> {
                 info!("Connection from: {}", addr);
                 let path = Arc::clone(&partial_file_path);
                 pool.execute(move || {
-                    // TODO: error handling here, should I just eprintln! and continue?
                     if let Err(e) = request_router(stream, path) {
                         error!("Error handling request, {}", e);
                     } else {
                         info!("Request handled OK");
                     }
-                });
+                })?;
             }
             // The listener is non-blocking, so if there are no connections waiting we can just sleep for a bit and try again
             Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {

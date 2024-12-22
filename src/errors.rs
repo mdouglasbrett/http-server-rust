@@ -2,18 +2,7 @@ use std::error::Error;
 use std::fmt::{Debug, Display, Error as FmtErr, Formatter};
 use std::io::Error as IOError;
 use std::num::ParseIntError;
-
-#[derive(Debug, PartialEq)]
-pub enum ThreadPoolError {}
-
-// TODO: this is a placeholder implementation
-impl Display for ThreadPoolError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), FmtErr> {
-        write!(f, "ThreadPoolError")
-    }
-}
-
-impl Error for ThreadPoolError {}
+use std::sync::{mpsc, PoisonError};
 
 #[derive(Debug, PartialEq)]
 pub enum ServerError {
@@ -53,9 +42,6 @@ impl Display for ClientError {
 pub enum AppError {
     Client(ClientError),
     Server(ServerError),
-    IO(String),
-    Parse(ParseIntError),
-    ThreadPool(ThreadPoolError),
 }
 
 impl Error for AppError {}
@@ -79,19 +65,31 @@ impl From<ServerError> for AppError {
 }
 
 impl From<IOError> for AppError {
-    fn from(error: IOError) -> Self {
-        Self::IO(error.to_string())
+    fn from(_error: IOError) -> Self {
+        Self::Server(ServerError::Internal)
     }
 }
 
 impl From<ParseIntError> for AppError {
-    fn from(error: ParseIntError) -> Self {
-        Self::Parse(error)
+    fn from(_error: ParseIntError) -> Self {
+        Self::Server(ServerError::Internal)
     }
 }
 
-impl From<ThreadPoolError> for AppError {
-    fn from(error: ThreadPoolError) -> Self {
-        Self::ThreadPool(error)
+impl From<mpsc::RecvError> for AppError {
+    fn from(_error: mpsc::RecvError) -> Self {
+        Self::Server(ServerError::Internal)
+    }
+}
+
+impl<T> From<mpsc::SendError<T>> for AppError {
+    fn from(_error: mpsc::SendError<T>) -> Self {
+        Self::Server(ServerError::Internal)
+    }
+}
+
+impl<T> From<PoisonError<T>> for AppError {
+    fn from(_error: PoisonError<T>) -> Self {
+        Self::Server(ServerError::Internal)
     }
 }
