@@ -5,7 +5,7 @@ use std::{
 
 use super::routes::Route;
 use crate::errors::{ClientError, ServerError};
-use crate::handlers::{
+use crate::handlers::deprecated_handlers::{
     handle_echo, handle_empty, handle_error, handle_get_file, handle_post_file, handle_user_agent,
 };
 use crate::http::request::{Method, Request};

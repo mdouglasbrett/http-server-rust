@@ -71,7 +71,7 @@ pub fn handle_error<T: Write>(s: &mut T, err: AppError) -> Result<()> {
 
 #[cfg(test)]
 mod test {
-    use crate::handlers::handle_empty as empty;
+    use super::handle_empty as empty;
     use crate::http::response::Response;
     use std::io::Write;
 
