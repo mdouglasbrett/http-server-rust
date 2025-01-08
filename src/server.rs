@@ -6,7 +6,8 @@ use std::time::Duration;
 use log::{error, info};
 
 use crate::config::Config;
-use crate::router::request_router;
+// TODO: clean up these exports
+use crate::router::request_router::request_router;
 use crate::thread_pool::ThreadPool;
 use crate::Result;
 

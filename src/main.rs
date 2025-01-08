@@ -6,7 +6,6 @@ mod errors;
 mod handlers;
 mod http;
 mod router;
-mod routes;
 mod server;
 mod thread_pool;
 mod utils;
