@@ -1,6 +1,7 @@
 #![warn(clippy::style, clippy::complexity, clippy::perf, clippy::correctness)]
 
-use codecrafters_http_server::{app_server, check_directory, Config, Result};
+use codecrafters_http_server::{app_server, Config, Result};
+use std::path::Path;
 
 fn main() -> Result<()> {
     env_logger::init();
@@ -9,4 +10,9 @@ fn main() -> Result<()> {
         std::fs::create_dir(&config.directory)?;
     }
     app_server(config)
+}
+
+fn check_directory(dir: &str) -> bool {
+    let path = Path::new(dir);
+    path.exists() && path.is_dir()
 }

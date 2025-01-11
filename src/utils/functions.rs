@@ -1,3 +1,5 @@
+// TODO: it might not make sense for this to be a module
+// once the http and handlers have been refactored
 use std::collections::HashMap;
 use std::fs;
 use std::io::Write;
@@ -47,11 +49,6 @@ pub fn get_header_value(val: &str, headers: &HashMap<String, HeaderField>) -> Op
             }
         }
     }
-}
-
-pub fn check_directory(dir: &str) -> bool {
-    let path = Path::new(dir);
-    path.exists() && path.is_dir()
 }
 
 // TODO: these functions are going to be interesting to test...
