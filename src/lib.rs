@@ -8,4 +8,4 @@ mod server;
 mod utils;
 
 // Re-exports for main.rs
-pub use {config::Config, errors::Result, server::app_server};
+pub use {config::Config, errors::Result, server::Server};

@@ -1,6 +1,6 @@
 #![warn(clippy::style, clippy::complexity, clippy::perf, clippy::correctness)]
 
-use codecrafters_http_server::{app_server, Config, Result};
+use codecrafters_http_server::{Config, Result, Server};
 use std::path::Path;
 
 fn main() -> Result<()> {
@@ -9,7 +9,8 @@ fn main() -> Result<()> {
     if !check_directory(&config.directory) {
         std::fs::create_dir(&config.directory)?;
     }
-    app_server(config)
+    let server = Server::new(&config)?;
+    server.start()
 }
 
 fn check_directory(dir: &str) -> bool {
