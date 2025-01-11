@@ -3,11 +3,13 @@ use std::{
     io::{BufRead, BufReader, Read},
 };
 
-use crate::constants::headers as header_fields;
-use crate::errors::{ClientError, ServerError};
-use crate::router::Route;
-use crate::utils::get_path_parts;
-use crate::Result;
+use crate::{
+    common::headers as header_fields,
+    errors::{ClientError, ServerError},
+    router::Route,
+    utils::get_path_parts,
+    Result,
+};
 
 #[derive(Debug, PartialEq)]
 pub enum Method {

@@ -6,9 +6,7 @@ use std::time::Duration;
 use log::{error, info};
 
 use super::thread_pool::ThreadPool;
-use crate::router::request_router;
-use crate::Config;
-use crate::Result;
+use crate::{router::request_router, Config, Result};
 
 pub fn app_server(config: Config) -> Result<()> {
     let listener = TcpListener::bind(&config.address)?;

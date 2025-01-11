@@ -2,7 +2,7 @@ use flate2::{write::GzEncoder, Compression};
 use std::io::Write;
 
 use crate::{
-    constants::headers::{CONTENT_ENCONDING, CONTENT_LENGTH, CONTENT_TYPE},
+    common::headers::{CONTENT_ENCONDING, CONTENT_LENGTH, CONTENT_TYPE},
     errors::{ClientError, ServerError},
 };
 
@@ -63,9 +63,9 @@ impl<'a> Response<'a> {
 mod tests {
 
     mod response {
-        use crate::constants::mime_types;
+        use crate::common::mime_types;
         use crate::errors::{ClientError::NotFound, ServerError::NotImplemented};
-        use crate::http::response::Response;
+        use crate::http::Response;
         #[test]
         fn client_error_response() {
             let expected = b"HTTP/1.1 404 Not Found\r\n\r\n".to_vec();

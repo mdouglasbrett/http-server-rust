@@ -1,5 +1,7 @@
-use crate::constants::defaults;
 use lexopt::prelude::*;
+
+const TARGET_DIR: &str = "/tmp/";
+const ADDRESS: &str = "127.0.0.1:4221";
 
 #[derive(Debug)]
 pub struct Config {
@@ -44,8 +46,8 @@ impl Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            directory: defaults::TARGET_DIR.to_owned(),
-            address: defaults::ADDRESS.to_owned(),
+            directory: TARGET_DIR.to_owned(),
+            address: ADDRESS.to_owned(),
         }
     }
 }

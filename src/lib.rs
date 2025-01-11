@@ -1,6 +1,5 @@
+mod common;
 mod config;
-// TODO: move constants out to relevant modules
-mod constants;
 mod errors;
 mod handlers;
 mod http;

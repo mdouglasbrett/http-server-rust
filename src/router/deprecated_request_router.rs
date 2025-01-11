@@ -4,12 +4,15 @@ use std::{
 };
 
 use super::routes::Route;
-use crate::errors::{ClientError, ServerError};
-use crate::handlers::deprecated_handlers::{
-    handle_echo, handle_empty, handle_error, handle_get_file, handle_post_file, handle_user_agent,
+use crate::{
+    errors::{ClientError, ServerError},
+    handlers::deprecated_handlers::{
+        handle_echo, handle_empty, handle_error, handle_get_file, handle_post_file,
+        handle_user_agent,
+    },
+    http::{Method, Request},
+    Result,
 };
-use crate::http::{Method, Request};
-use crate::Result;
 
 pub fn request_router<T: Read + Write>(mut stream: T, file_path: Arc<String>) -> Result<()> {
     match Request::try_new(&mut stream) {

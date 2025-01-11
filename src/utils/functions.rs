@@ -4,10 +4,12 @@ use std::io::Write;
 use std::path::Path;
 use std::sync::Arc;
 
-use crate::constants::headers::ACCEPT_ENCODING;
-use crate::errors::{ClientError, ServerError};
-use crate::http::{HeaderField, Request};
-use crate::Result;
+use crate::{
+    common::headers::ACCEPT_ENCODING,
+    errors::{ClientError, ServerError},
+    http::{HeaderField, Request},
+    Result,
+};
 
 const ALLOWED_ENCODING: &str = "gzip";
 
@@ -107,9 +109,7 @@ mod tests {
     mod get_header_value {
         use std::collections::HashMap;
 
-        use crate::{
-            constants::headers as header_fields, http::HeaderField, utils::get_header_value,
-        };
+        use crate::{common::headers as header_fields, http::HeaderField, utils::get_header_value};
 
         #[test]
         fn returns_correct_values() {

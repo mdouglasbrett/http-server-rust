@@ -1,7 +1,3 @@
-pub mod defaults {
-    pub const TARGET_DIR: &str = "/tmp/";
-    pub const ADDRESS: &str = "127.0.0.1:4221";
-}
 pub mod headers {
     pub const USER_AGENT: &str = "User-Agent";
     pub const CONTENT_LENGTH: &str = "Content-Length";
