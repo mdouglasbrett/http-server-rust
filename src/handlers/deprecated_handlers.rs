@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use crate::constants::{headers, mime_types};
 use crate::errors::{AppError, ClientError::BadRequest};
-use crate::http::{request::Request, response::Response};
+use crate::http::{Request, Response};
 use crate::utils::{get_header_value, get_path_parts, read_file, write_file};
 use crate::Result;
 
@@ -72,7 +72,7 @@ pub fn handle_error<T: Write>(s: &mut T, err: AppError) -> Result<()> {
 #[cfg(test)]
 mod test {
     use super::handle_empty as empty;
-    use crate::http::response::Response;
+    use crate::http::Response;
     use std::io::Write;
 
     struct MockStream {

@@ -5,7 +5,7 @@ use std::{
 
 use crate::constants::headers as header_fields;
 use crate::errors::{ClientError, ServerError};
-use crate::router::routes::Route;
+use crate::router::Route;
 use crate::utils::get_path_parts;
 use crate::Result;
 
@@ -135,7 +135,7 @@ mod tests {
     mod request {
         use crate::errors::{AppError, ClientError};
         use crate::http::request::{Method::Get, Request};
-        use crate::router::routes::Route::Echo;
+        use crate::router::Route::Echo;
         use std::collections::HashMap;
 
         #[test]

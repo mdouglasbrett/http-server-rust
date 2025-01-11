@@ -1,5 +1,5 @@
-pub mod request;
-pub mod response;
+mod request;
+mod response;
 
-pub use request::Request;
-pub use response::Response;
+pub(crate) use request::{HeaderField, Method, Request};
+pub(crate) use response::Response;

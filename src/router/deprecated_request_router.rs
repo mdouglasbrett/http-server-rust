@@ -8,7 +8,7 @@ use crate::errors::{ClientError, ServerError};
 use crate::handlers::deprecated_handlers::{
     handle_echo, handle_empty, handle_error, handle_get_file, handle_post_file, handle_user_agent,
 };
-use crate::http::request::{Method, Request};
+use crate::http::{Method, Request};
 use crate::Result;
 
 pub fn request_router<T: Read + Write>(mut stream: T, file_path: Arc<String>) -> Result<()> {

@@ -1,16 +1,12 @@
-pub mod config;
+mod config;
 // TODO: move constants out to relevant modules
-pub mod constants;
-pub mod errors;
-pub mod handlers;
-pub mod http;
-pub mod router;
-pub mod server;
-pub mod utils;
+mod constants;
+mod errors;
+mod handlers;
+mod http;
+mod router;
+mod server;
+mod utils;
 
-pub use {
-    config::Config,
-    errors::{AppError, Result},
-    server::app_server,
-    utils::check_directory,
-};
+// Re-exports for main.rs
+pub use {config::Config, errors::Result, server::app_server, utils::check_directory};

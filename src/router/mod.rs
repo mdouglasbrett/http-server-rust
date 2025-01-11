@@ -1,4 +1,5 @@
-pub mod deprecated_request_router;
-pub mod routes;
+mod deprecated_request_router;
+mod routes;
 
-pub use deprecated_request_router::request_router;
+pub(crate) use deprecated_request_router::request_router;
+pub(crate) use routes::Route;
