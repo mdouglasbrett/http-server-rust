@@ -13,7 +13,7 @@ pub enum ServerError {
 impl Error for ServerError {}
 
 impl Display for ServerError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), FmtErr> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::result::Result<(), FmtErr> {
         match self {
             Self::Internal => write!(f, "500 Internal Server Error"),
             Self::NotImplemented => write!(f, "501 Not Implemented"),
@@ -30,7 +30,7 @@ pub enum ClientError {
 impl Error for ClientError {}
 
 impl Display for ClientError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), FmtErr> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::result::Result<(), FmtErr> {
         match self {
             Self::NotFound => write!(f, "404 Not Found"),
             Self::BadRequest => write!(f, "400 Bad Request"),
@@ -47,7 +47,7 @@ pub enum AppError {
 impl Error for AppError {}
 
 impl Display for AppError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), FmtErr> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::result::Result<(), FmtErr> {
         write!(f, "{:?}", self)
     }
 }
@@ -93,3 +93,5 @@ impl<T> From<PoisonError<T>> for AppError {
         Self::Server(ServerError::Internal)
     }
 }
+
+pub type Result<T> = std::result::Result<T, AppError>;
