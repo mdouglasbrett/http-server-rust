@@ -3,3 +3,6 @@ mod routes;
 
 pub(crate) use deprecated_request_router::request_router;
 pub(crate) use routes::Route;
+
+// TODO: placeholder
+pub(crate) struct Router;
