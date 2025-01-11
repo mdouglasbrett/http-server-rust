@@ -6,6 +6,7 @@ use std::path::Path;
 fn main() -> Result<()> {
     env_logger::init();
     let config = Config::new();
+    // TODO: move this into config implementation
     if !check_directory(&config.directory) {
         std::fs::create_dir(&config.directory)?;
     }

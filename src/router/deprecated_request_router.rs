@@ -3,7 +3,7 @@ use std::{
     sync::Arc,
 };
 
-use super::routes::Route;
+use super::Route;
 use crate::{
     errors::{ClientError, ServerError},
     handlers::deprecated_handlers::{

@@ -1,13 +1,12 @@
 use crate::{
-    handlers::Handler,
     http::{Request, Response},
     Result,
 };
 
-pub struct EchoHandler;
+pub(crate) struct EchoHandler;
 
-impl Handler for EchoHandler {
-    fn handle(&self, request: &Request) -> Result<Response> {
+impl EchoHandler {
+    pub(crate) fn handle(request: &Request) -> Result<Response> {
         todo!()
     }
 }
