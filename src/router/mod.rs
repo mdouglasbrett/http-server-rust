@@ -50,7 +50,7 @@ impl Router {
             Route::Files => FileHandler::handle(request, self.dir.clone()),
             Route::UserAgent => UserAgentHandler::handle(request),
             Route::Empty => todo!(),
-            Route::Unknown => return Err(ClientError::NotFound.into()),
+            Route::Unknown => Err(ClientError::NotFound.into()),
         }
     }
 }
