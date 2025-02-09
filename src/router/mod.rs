@@ -6,7 +6,7 @@ pub(crate) use deprecated_request_router::request_router;
 
 use crate::{
     errors::ClientError,
-    handlers::{EchoHandler, FileHandler, UserAgentHandler},
+    handlers::{EchoHandler, EmptyHandler, FileHandler, UserAgentHandler},
     http::{Request, Response},
     Result,
 };
@@ -49,7 +49,7 @@ impl Router {
             // TODO: Get rid of the clone
             Route::Files => FileHandler::handle(request, self.dir.clone()),
             Route::UserAgent => UserAgentHandler::handle(request),
-            Route::Empty => todo!(),
+            Route::Empty => EmptyHandler::handle(request),
             Route::Unknown => Err(ClientError::NotFound.into()),
         }
     }
