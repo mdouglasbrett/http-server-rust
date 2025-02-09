@@ -1,3 +1,5 @@
+// TODO: use the builder pattern to make a constructable response:
+// https://rust-unofficial.github.io/patterns/patterns/creational/builder.html
 use flate2::{write::GzEncoder, Compression};
 use std::io::Write;
 
