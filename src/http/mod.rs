@@ -1,5 +1,5 @@
 mod request;
-mod response;
+mod deprecated_response;
 
 pub(crate) use request::{HeaderField, Method, Request};
-pub(crate) use response::Response;
+pub(crate) use deprecated_response::Response;
