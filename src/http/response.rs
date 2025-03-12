@@ -11,6 +11,7 @@ pub struct Response {
 }
 
 impl Response {
+    // TODO: expose builder() method that returns the ResponseBuilder type
     // TODO: what do we actually want to validate here?
     // Possibly mime type and or encoding?
     fn validate(&self) -> Result<()> {
