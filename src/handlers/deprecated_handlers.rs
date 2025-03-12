@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use crate::common::{headers, mime_types};
 use crate::errors::{AppError, ClientError::BadRequest};
-use crate::http::{Request, Response};
+use crate::http::{Request, DeprecatedResponse as Response};
 use crate::utils::{get_header_value, get_path_parts, read_file, write_file};
 use crate::Result;
 
@@ -12,6 +12,8 @@ pub fn handle_empty<T: Write>(s: &mut T) -> Result<()> {
     Ok(())
 }
 
+// TODO: Requests need to be passed as Request types. Should be built and 
+// have methods on them, rather than these standalone util funcs
 pub fn handle_echo<T: Write>(s: &mut T, r: &Request) -> Result<()> {
     let encoding = get_header_value(headers::ACCEPT_ENCODING, &r.headers);
     s.write_all(
