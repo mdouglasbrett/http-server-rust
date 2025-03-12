@@ -1,7 +1,7 @@
 use std::io::Write;
 use std::sync::Arc;
 
-use crate::common::{headers, mime_types};
+use crate::constants::{headers, mime_types};
 use crate::errors::{AppError, ClientError::BadRequest};
 use crate::http::{Request, DeprecatedResponse as Response};
 use crate::utils::{get_header_value, get_path_parts, read_file, write_file};

@@ -7,7 +7,7 @@ use std::path::Path;
 use std::sync::Arc;
 
 use crate::{
-    common::headers::ACCEPT_ENCODING,
+    constants::headers::ACCEPT_ENCODING,
     errors::{ClientError, ServerError},
     http::{HeaderField, Request},
     Result,
@@ -106,7 +106,7 @@ mod tests {
     mod get_header_value {
         use std::collections::HashMap;
 
-        use crate::{common::headers as header_fields, http::HeaderField, utils::get_header_value};
+        use crate::{constants::headers as header_fields, http::HeaderField, utils::get_header_value};
 
         #[test]
         fn returns_correct_values() {

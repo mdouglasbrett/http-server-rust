@@ -4,7 +4,7 @@ use flate2::{write::GzEncoder, Compression};
 use std::io::Write;
 
 use crate::{
-    common::headers::{CONTENT_ENCONDING, CONTENT_LENGTH, CONTENT_TYPE},
+    constants::headers::{CONTENT_ENCONDING, CONTENT_LENGTH, CONTENT_TYPE},
     errors::{ClientError, ServerError},
 };
 
@@ -65,7 +65,7 @@ impl<'a> Response<'a> {
 mod tests {
 
     mod response {
-        use crate::common::mime_types;
+        use crate::constants::mime_types;
         use crate::errors::{ClientError::NotFound, ServerError::NotImplemented};
         use crate::http::Response;
         #[test]
