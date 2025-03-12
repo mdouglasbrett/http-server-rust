@@ -1,12 +1,13 @@
 use crate::{
-    http::{Request, Response},
+    http::{Request, ResponseBuilder, Response},
     Result,
 };
 
-pub(crate) struct EchoHandler;
+pub struct EchoHandler;
 
 impl EchoHandler {
-    pub(crate) fn handle(request: &Request) -> Result<Response> {
-        todo!()
+    pub fn handle(request: &Request) -> Result<Response> {
+        let mut response = ResponseBuilder::new().build();
+        response
     }
 }

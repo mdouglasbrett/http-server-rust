@@ -3,10 +3,10 @@ use crate::{
     Result,
 };
 
-pub(crate) struct FileHandler;
+pub struct FileHandler;
 
 impl FileHandler {
-    pub(crate) fn handle(request: &Request, dir: String) -> Result<Response> {
+    pub fn handle(request: &Request, dir: String) -> Result<Response> {
         todo!()
     }
 }

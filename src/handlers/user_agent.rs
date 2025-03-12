@@ -3,10 +3,10 @@ use crate::{
     Result,
 };
 
-pub(crate) struct UserAgentHandler;
+pub struct UserAgentHandler;
 
 impl UserAgentHandler {
-    pub(crate) fn handle(request: &Request) -> Result<Response> {
+    pub fn handle(request: &Request) -> Result<Response> {
         todo!()
     }
 }

@@ -3,10 +3,10 @@ use crate::{
     Result,
 };
 
-pub(crate) struct EmptyHandler;
+pub struct EmptyHandler;
 
 impl EmptyHandler {
-    pub(crate) fn handle(request: &Request) -> Result<Response> {
-        todo!()
+    pub fn handle(request: &Request) -> Result<Response> {
+        Response::ok()
     }
 }
