@@ -43,7 +43,7 @@ impl Router {
         Router { dir }
     }
 
-    pub(crate) fn route<'a>(&self, request: &'a Request) -> Result<Response<'a>> {
+    pub(crate) fn route(&self, request: &Request) -> Result<Response> {
         match request.route {
             Route::Echo => EchoHandler::handle(request),
             // TODO: Get rid of the clone

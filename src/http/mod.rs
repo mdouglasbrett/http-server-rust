@@ -2,8 +2,9 @@ mod deprecated_response;
 mod request;
 mod response;
 
-pub(crate) use deprecated_response::Response;
-pub(crate) use request::{HeaderField, Method, Request};
+pub use deprecated_response::Response as DeprecatedResponse;
+pub use request::{HeaderField, Method, Request};
+pub use response::{Response, ResponseBuilder};
 
 #[derive(Debug)]
 pub enum StatusCode {

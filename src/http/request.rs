@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::{
-    common::headers as header_fields,
+    constants::headers as header_fields,
     errors::{ClientError, ServerError},
     router::Route,
     utils::get_path_parts,
