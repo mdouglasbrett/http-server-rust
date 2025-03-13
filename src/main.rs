@@ -8,6 +8,7 @@ fn main() -> Result<()> {
     let config = Config::new();
     // TODO: move this into config implementation
     if !check_directory(&config.directory) {
+        // TODO: permissions?
         std::fs::create_dir(&config.directory)?;
     }
     let server = Server::new(&config)?;
