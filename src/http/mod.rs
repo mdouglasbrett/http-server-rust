@@ -4,7 +4,7 @@ mod response;
 
 pub use deprecated_response::Response as DeprecatedResponse;
 pub use request::{HeaderField, Method, Request};
-pub use response::{Response, ResponseBuilder};
+pub use response::Response;
 
 #[derive(Debug)]
 pub enum StatusCode {

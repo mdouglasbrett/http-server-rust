@@ -3,36 +3,37 @@ use crate::{constants::mime_types::PLAIN_TEXT, Result};
 
 // TODO: almost definitely these fields are going to change
 #[derive(Debug)]
-pub struct Response {
+pub struct Response<'a> {
     status_code: StatusCode,
-    body: Option<String>,
+    body: Option<&'a [u8]>,
     mime_type: String,
     encoding: Option<String>,
 }
 
-impl Response {
-    // TODO: expose builder() method that returns the ResponseBuilder type
+impl<'a> Response<'a> {
+    pub fn builder() -> ResponseBuilder<'a> {
+        ResponseBuilder::new()
+    }
     // TODO: what do we actually want to validate here?
     // Possibly mime type and or encoding?
     fn validate(&self) -> Result<()> {
         Ok(())
     }
 
-
-    pub fn ok() -> Result<Response> {
+    pub fn ok() -> Result<Response<'a>> {
         ResponseBuilder::new().build()
     }
-    pub fn not_found() -> Result<Response> {
+    pub fn not_found() -> Result<Response<'a>> {
         ResponseBuilder::new()
             .status_code(StatusCode::NotFound)
             .build()
     }
-    pub fn client_error() -> Result<Response> {
+    pub fn client_error() -> Result<Response<'a>> {
         ResponseBuilder::new()
             .status_code(StatusCode::ClientError)
             .build()
     }
-    pub fn server_error() -> Result<Response> {
+    pub fn server_error() -> Result<Response<'a>> {
         ResponseBuilder::new()
             .status_code(StatusCode::ServerError)
             .build()
@@ -40,14 +41,14 @@ impl Response {
 }
 
 #[derive(Debug, Default)]
-pub struct ResponseBuilder {
+pub struct ResponseBuilder<'a> {
     status_code: Option<StatusCode>,
-    body: Option<String>,
+    body: Option<&'a [u8]>,
     mime_type: Option<String>,
     encoding: Option<String>,
 }
 
-impl ResponseBuilder {
+impl<'a> ResponseBuilder<'a> {
     pub fn new() -> Self {
         Self::default()
     }
@@ -60,16 +61,15 @@ impl ResponseBuilder {
         self.mime_type = Some(mime_type);
         self
     }
-    // TODO, should we just keep this as bytes? How do we recieve it?
-    pub fn body(mut self, body: &str) -> Self {
-        self.body = Some(body.to_owned());
+    pub fn body(mut self, body: &'a [u8]) -> Self {
+        self.body = Some(body);
         self
     }
     pub fn encoding(mut self, encoding: Option<String>) -> Self {
         self.encoding = encoding;
         self
     }
-    pub fn build(self) -> Result<Response> {
+    pub fn build(self) -> Result<Response<'a>> {
         let response = Response {
             status_code: self.status_code.unwrap_or(StatusCode::Ok),
             body: self.body,

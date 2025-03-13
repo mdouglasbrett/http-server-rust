@@ -1,5 +1,5 @@
 use crate::{
-    http::{Request, ResponseBuilder, Response},
+    http::{Request, Response, StatusCode},
     Result,
 };
 
@@ -7,7 +7,9 @@ pub struct EchoHandler;
 
 impl EchoHandler {
     pub fn handle(request: &Request) -> Result<Response> {
-        let mut response = ResponseBuilder::new().build();
-        response
+        Response::builder()
+            .status_code(StatusCode::Ok)
+            .body(&request.body)
+            .build()
     }
 }

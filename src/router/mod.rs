@@ -2,7 +2,7 @@
 // the deprecated_request_router has been replaced
 mod deprecated_request_router;
 
-pub(crate) use deprecated_request_router::request_router;
+pub use deprecated_request_router::request_router;
 
 use crate::{
     errors::ClientError,
@@ -39,11 +39,11 @@ pub(crate) struct Router {
 }
 
 impl Router {
-    pub(crate) fn new(dir: String) -> Self {
+    pub fn new(dir: String) -> Self {
         Router { dir }
     }
 
-    pub(crate) fn route(&self, request: &Request) -> Result<Response> {
+    pub fn route<'a>(&self, request: &'a Request) -> Result<Response<'a>> {
         match request.route {
             Route::Echo => EchoHandler::handle(request),
             // TODO: Get rid of the clone
