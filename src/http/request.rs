@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::{
-    constants::headers as header_fields,
+    constants::{headers as header_fields, ALLOWED_ENCODING},
     errors::{ClientError, ServerError},
     router::Route,
     utils::get_path_parts,
@@ -128,6 +128,32 @@ impl Request {
             headers,
             body: body_buf,
         })
+    }
+    pub fn get_header(&self, header: &str) -> Option<&str> {
+        let header_val = self.headers.get(header);
+        match header {
+            header_fields::ACCEPT_ENCODING => match header_val {
+                Some(HeaderField::Multiple(v)) => {
+                    let filtered_encodings = v
+                        .iter()
+                        .filter(|e| e.as_str() == ALLOWED_ENCODING)
+                        .collect::<Vec<&String>>();
+                    if filtered_encodings.is_empty() {
+                        None
+                    } else {
+                        Some(filtered_encodings[0].as_str())
+                    }
+                }
+                _ => None,
+            },
+            _ => {
+                if let Some(HeaderField::Single(val)) = header_val {
+                    Some(val.as_str())
+                } else {
+                    None
+                }
+            }
+        }
     }
 }
 

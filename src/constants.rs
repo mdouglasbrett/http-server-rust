@@ -10,3 +10,5 @@ pub mod mime_types {
     pub const PLAIN_TEXT: &str = "text/plain";
     pub const OCTET_STREAM: &str = "application/octect-stream";
 }
+
+pub const ALLOWED_ENCODING: &str = "gzip";
