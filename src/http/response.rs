@@ -1,13 +1,20 @@
 use super::StatusCode;
 use crate::{constants::mime_types::PLAIN_TEXT, Result};
 
+#[derive(Debug)]
+pub enum MimeType {
+    PlainText,
+    OctetStream
+}
+
 // TODO: almost definitely these fields are going to change
 #[derive(Debug)]
 pub struct Response<'a> {
     status_code: StatusCode,
-    body: Option<&'a [u8]>,
-    mime_type: String,
-    encoding: Option<String>,
+    body: Option<&'a str>,
+    mime_type: Option<MimeType>,
+    content_length: Option<usize>,
+    encoding: Option<&'a str>,
 }
 
 impl<'a> Response<'a> {
@@ -43,9 +50,9 @@ impl<'a> Response<'a> {
 #[derive(Debug, Default)]
 pub struct ResponseBuilder<'a> {
     status_code: Option<StatusCode>,
-    body: Option<&'a [u8]>,
-    mime_type: Option<String>,
-    encoding: Option<String>,
+    body: Option<&'a str>,
+    mime_type: Option<MimeType>,
+    encoding: Option<&'a str>,
 }
 
 impl<'a> ResponseBuilder<'a> {
@@ -57,15 +64,15 @@ impl<'a> ResponseBuilder<'a> {
         self.status_code = Some(status_code);
         self
     }
-    pub fn mime_type(mut self, mime_type: String) -> Self {
+    pub fn mime_type(mut self, mime_type: MimeType) -> Self {
         self.mime_type = Some(mime_type);
         self
     }
-    pub fn body(mut self, body: &'a [u8]) -> Self {
-        self.body = Some(body);
+    pub fn body(mut self, body: Option<&'a str>) -> Self {
+        self.body = body;
         self
     }
-    pub fn encoding(mut self, encoding: Option<String>) -> Self {
+    pub fn encoding(mut self, encoding: Option<&'a str>) -> Self {
         self.encoding = encoding;
         self
     }
@@ -73,7 +80,12 @@ impl<'a> ResponseBuilder<'a> {
         let response = Response {
             status_code: self.status_code.unwrap_or(StatusCode::Ok),
             body: self.body,
-            mime_type: self.mime_type.unwrap_or(PLAIN_TEXT.to_owned()),
+            content_length: if let Some(b) = self.body {
+                Some(b.len())
+            } else {
+                None
+            },
+            mime_type: self.mime_type,
             encoding: self.encoding,
         };
         response.validate()?;

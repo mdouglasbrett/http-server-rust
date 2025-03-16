@@ -1,12 +1,9 @@
-use crate::{
-    http::{Request, Response},
-    Result,
-};
+use crate::{http::{Request, Response}, Result};
 
 pub struct EmptyHandler;
 
 impl EmptyHandler {
-    pub fn handle(request: &Request) -> Result<Response> {
+    pub fn handle(_request: &Request) -> Result<Response> {
         Response::ok()
     }
 }

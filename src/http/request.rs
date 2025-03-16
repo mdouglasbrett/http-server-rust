@@ -11,6 +11,8 @@ use crate::{
     Result,
 };
 
+use super::Headers;
+
 #[derive(Debug, PartialEq)]
 pub enum Method {
     Get,
@@ -33,6 +35,7 @@ impl From<Option<&str>> for Method {
 }
 
 // TODO: this is a temporary solution. Is there something better?
+// TODO: at least rename this
 #[derive(Debug, PartialEq)]
 pub enum HeaderField {
     Single(String),
@@ -45,9 +48,11 @@ pub struct Request {
     pub route: Route,
     // https://steveklabnik.com/writing/when-should-i-use-string-vs-str/
     pub path: String,
-    pub headers: HashMap<String, HeaderField>,
+    pub headers: HashMap<Headers, HeaderField>,
     pub body: Vec<u8>,
 }
+
+// TODO: RequestBuilder
 
 impl Request {
     pub fn try_new<T: Read>(value: &mut T) -> Result<Self> {
@@ -92,14 +97,14 @@ impl Request {
             let key_value = trimmed_header_line
                 .split_terminator(":")
                 .collect::<Vec<&str>>();
-            let key = key_value[0];
+            let key = Headers::from(key_value[0]);
             let raw_value = key_value[1].trim();
-            let value = if key == header_fields::ACCEPT_ENCODING {
+            let value = if key == Headers::AcceptEncoding {
                 HeaderField::Multiple(raw_value.split(", ").map(|s| s.to_owned()).collect())
             } else {
                 HeaderField::Single(raw_value.to_owned())
             };
-            let _ = headers.insert(key.to_owned(), value);
+            let _ = headers.insert(key, value);
         }
 
         let mut body_buf: Vec<u8> = vec![];
@@ -108,7 +113,7 @@ impl Request {
             body_buf.extend(path_parts[1].as_bytes());
         } else {
             // If there's no content length, do not attempt to parse the body
-            if let Some(len) = headers.get(header_fields::CONTENT_LENGTH) {
+            if let Some(len) = headers.get(&Headers::ContentLength) {
                 match len {
                     HeaderField::Single(len) => {
                         let len = len.parse::<u64>()?;
@@ -129,10 +134,12 @@ impl Request {
             body: body_buf,
         })
     }
-    pub fn get_header(&self, header: &str) -> Option<&str> {
-        let header_val = self.headers.get(header);
+    pub fn get_header(&self, header: Headers) -> Option<&str> {
+        let header_val = self.headers.get(&header);
         match header {
-            header_fields::ACCEPT_ENCODING => match header_val {
+            // TODO: I think we can do something with the encoding enum 
+            // to avoid this string check
+            Headers::AcceptEncoding => match header_val {
                 Some(HeaderField::Multiple(v)) => {
                     let filtered_encodings = v
                         .iter()
