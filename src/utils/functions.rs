@@ -1,15 +1,13 @@
 // TODO: it might not make sense for this to be a module
 // once the http and handlers have been refactored
-use std::collections::HashMap;
 use std::fs;
 use std::io::Write;
 use std::path::Path;
 use std::sync::Arc;
 
 use crate::{
-    constants::headers::ACCEPT_ENCODING,
     errors::{ClientError, ServerError},
-    http::{HeaderField, Request},
+    http::Request,
     Result,
 };
 
@@ -19,36 +17,6 @@ pub fn get_path_parts(s: &str) -> Vec<&str> {
     s.split("/")
         .filter(|s| !s.is_empty())
         .collect::<Vec<&str>>()
-}
-
-// TODO: this should change really - and could possibly be reduced just to the
-// encoding filtering. Instead of matching on string slices, it should probably
-// be done via enum
-pub fn get_header_value(val: &str, headers: &HashMap<String, HeaderField>) -> Option<String> {
-    let header_val = headers.get(val);
-    match val {
-        ACCEPT_ENCODING => match header_val {
-            Some(HeaderField::Multiple(v)) => {
-                let filtered_encodings = v
-                    .iter()
-                    .filter(|e| e.as_str() == ALLOWED_ENCODING)
-                    .collect::<Vec<&String>>();
-                if filtered_encodings.is_empty() {
-                    None
-                } else {
-                    Some(filtered_encodings[0].to_owned())
-                }
-            }
-            _ => None,
-        },
-        _ => {
-            if let Some(HeaderField::Single(val)) = header_val {
-                Some(val.to_owned())
-            } else {
-                None
-            }
-        }
-    }
 }
 
 // TODO: these functions are going to be interesting to test...
@@ -106,7 +74,9 @@ mod tests {
     mod get_header_value {
         use std::collections::HashMap;
 
-        use crate::{constants::headers as header_fields, http::HeaderField, utils::get_header_value};
+        use crate::{
+            constants::headers as header_fields, http::HeaderField, utils::get_header_value,
+        };
 
         #[test]
         fn returns_correct_values() {

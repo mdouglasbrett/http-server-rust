@@ -3,44 +3,9 @@ use std::{
     io::{BufRead, BufReader, Read},
 };
 
-use crate::{
-    constants::{headers as header_fields, ALLOWED_ENCODING},
-    errors::{ClientError, ServerError},
-    router::Route,
-    utils::get_path_parts,
-    Result,
-};
+use crate::{errors::ClientError, router::Route, utils::get_path_parts, Result};
 
-use super::Headers;
-
-#[derive(Debug, PartialEq)]
-pub enum Method {
-    Get,
-    Post,
-    Unknown(ClientError),
-    Unsupported(ServerError),
-}
-
-impl From<Option<&str>> for Method {
-    fn from(o: Option<&str>) -> Self {
-        match o {
-            Some("GET") => Self::Get,
-            Some("POST") => Self::Post,
-            // Maybe tomorrow...
-            Some("PUT") | Some("PATCH") | Some("OPTIONS") | Some("HEAD") | Some("DELETE")
-            | Some("CONNECT") | Some("TRACE") => Self::Unsupported(ServerError::NotImplemented),
-            _ => Self::Unknown(ClientError::BadRequest),
-        }
-    }
-}
-
-// TODO: this is a temporary solution. Is there something better?
-// TODO: at least rename this
-#[derive(Debug, PartialEq)]
-pub enum HeaderField {
-    Single(String),
-    Multiple(Vec<String>),
-}
+use super::{Headers, Method};
 
 #[derive(Debug, PartialEq)]
 pub struct Request {
@@ -48,7 +13,7 @@ pub struct Request {
     pub route: Route,
     // https://steveklabnik.com/writing/when-should-i-use-string-vs-str/
     pub path: String,
-    pub headers: HashMap<Headers, HeaderField>,
+    pub headers: HashMap<Headers, String>,
     pub body: Vec<u8>,
 }
 
@@ -99,12 +64,13 @@ impl Request {
                 .collect::<Vec<&str>>();
             let key = Headers::from(key_value[0]);
             let raw_value = key_value[1].trim();
-            let value = if key == Headers::AcceptEncoding {
-                HeaderField::Multiple(raw_value.split(", ").map(|s| s.to_owned()).collect())
-            } else {
-                HeaderField::Single(raw_value.to_owned())
-            };
-            let _ = headers.insert(key, value);
+            let concat_parts = raw_value.replace(", ", ",");
+            headers
+                .entry(key)
+                .and_modify(|val| {
+                    format!("{},{}", val, concat_parts);
+                })
+                .or_insert(concat_parts.to_owned());
         }
 
         let mut body_buf: Vec<u8> = vec![];
@@ -114,15 +80,8 @@ impl Request {
         } else {
             // If there's no content length, do not attempt to parse the body
             if let Some(len) = headers.get(&Headers::ContentLength) {
-                match len {
-                    HeaderField::Single(len) => {
-                        let len = len.parse::<u64>()?;
-                        buf.take(len).read_to_end(&mut body_buf)?;
-                    }
-                    HeaderField::Multiple(_) => {
-                        return Err(ClientError::BadRequest.into());
-                    }
-                }
+                let len = len.parse::<u64>()?;
+                buf.take(len).read_to_end(&mut body_buf)?;
             }
         }
 
@@ -134,33 +93,9 @@ impl Request {
             body: body_buf,
         })
     }
-    pub fn get_header(&self, header: Headers) -> Option<&str> {
+    pub fn get_header(&self, header: Headers) -> Option<&String> {
         let header_val = self.headers.get(&header);
-        match header {
-            // TODO: I think we can do something with the encoding enum 
-            // to avoid this string check
-            Headers::AcceptEncoding => match header_val {
-                Some(HeaderField::Multiple(v)) => {
-                    let filtered_encodings = v
-                        .iter()
-                        .filter(|e| e.as_str() == ALLOWED_ENCODING)
-                        .collect::<Vec<&String>>();
-                    if filtered_encodings.is_empty() {
-                        None
-                    } else {
-                        Some(filtered_encodings[0].as_str())
-                    }
-                }
-                _ => None,
-            },
-            _ => {
-                if let Some(HeaderField::Single(val)) = header_val {
-                    Some(val.as_str())
-                } else {
-                    None
-                }
-            }
-        }
+        header_val
     }
 }
 

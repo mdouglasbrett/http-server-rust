@@ -7,8 +7,13 @@ pub struct UserAgentHandler;
 
 impl UserAgentHandler {
     pub fn handle(request: &Request) -> Result<Response> {
+        let body = if let Some(b) = request.get_header(Headers::UserAgent) {
+            Some(b.as_bytes())
+        } else {
+            None
+        };
         Response::builder()
-            .body(request.get_header(Headers::UserAgent))
+            .body(body)
             .encoding(request.get_header(Headers::ContentEncoding))
             .mime_type(MimeType::PlainText)
             .build()

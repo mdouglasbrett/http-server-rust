@@ -1,8 +1,8 @@
 // TODO: remove this file from nested structure, once
 // the deprecated_request_router has been replaced
-mod deprecated_request_router;
+// mod deprecated_request_router;
 
-pub use deprecated_request_router::request_router;
+// pub use deprecated_request_router::request_router;
 
 use crate::{
     errors::ClientError,

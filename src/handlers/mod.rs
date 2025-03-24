@@ -1,4 +1,4 @@
-pub mod deprecated_handlers;
+//pub mod deprecated_handlers;
 mod echo;
 mod empty;
 mod files;

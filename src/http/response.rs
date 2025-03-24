@@ -1,20 +1,13 @@
-use super::StatusCode;
-use crate::{constants::mime_types::PLAIN_TEXT, Result};
+use super::{Encoding, MimeType, StatusCode};
+use crate::Result;
 
-#[derive(Debug)]
-pub enum MimeType {
-    PlainText,
-    OctetStream
-}
-
-// TODO: almost definitely these fields are going to change
 #[derive(Debug)]
 pub struct Response<'a> {
     status_code: StatusCode,
-    body: Option<&'a str>,
+    body: Option<&'a [u8]>,
     mime_type: Option<MimeType>,
     content_length: Option<usize>,
-    encoding: Option<&'a str>,
+    encoding: Option<Vec<Encoding>>,
 }
 
 impl<'a> Response<'a> {
@@ -23,6 +16,7 @@ impl<'a> Response<'a> {
     }
     // TODO: what do we actually want to validate here?
     // Possibly mime type and or encoding?
+    // Encoding -> Check for gzip
     fn validate(&self) -> Result<()> {
         Ok(())
     }
@@ -50,9 +44,10 @@ impl<'a> Response<'a> {
 #[derive(Debug, Default)]
 pub struct ResponseBuilder<'a> {
     status_code: Option<StatusCode>,
-    body: Option<&'a str>,
+    body: Option<&'a [u8]>,
     mime_type: Option<MimeType>,
-    encoding: Option<&'a str>,
+    encoding: Option<Vec<Encoding>>,
+    content_length: Option<usize>
 }
 
 impl<'a> ResponseBuilder<'a> {
@@ -68,12 +63,20 @@ impl<'a> ResponseBuilder<'a> {
         self.mime_type = Some(mime_type);
         self
     }
-    pub fn body(mut self, body: Option<&'a str>) -> Self {
+    // TODO: does this make more sense to just be bytes?
+    pub fn body(mut self, body: Option<&'a [u8]>) -> Self {
         self.body = body;
         self
     }
-    pub fn encoding(mut self, encoding: Option<&'a str>) -> Self {
-        self.encoding = encoding;
+    pub fn encoding(mut self, encoding: Option<&String>) -> Self {
+        if let Some(encoding_string) = encoding {
+            self.encoding = Some(
+                encoding_string
+                    .split(",")
+                    .map(|e| Encoding::from(e))
+                    .collect::<Vec<Encoding>>(),
+            );
+        }
         self
     }
     pub fn build(self) -> Result<Response<'a>> {
