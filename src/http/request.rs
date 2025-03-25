@@ -67,9 +67,8 @@ impl Request {
             let concat_parts = raw_value.replace(", ", ",");
             headers
                 .entry(key)
-                .and_modify(|val| {
-                    format!("{},{}", val, concat_parts);
-                })
+                // in-place mutation
+                .and_modify(|val| { *val = format!("{},{}", val, concat_parts); })
                 .or_insert(concat_parts.to_owned());
         }
 

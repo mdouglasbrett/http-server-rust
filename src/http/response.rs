@@ -47,7 +47,6 @@ pub struct ResponseBuilder<'a> {
     body: Option<&'a [u8]>,
     mime_type: Option<MimeType>,
     encoding: Option<Vec<Encoding>>,
-    content_length: Option<usize>
 }
 
 impl<'a> ResponseBuilder<'a> {
@@ -63,7 +62,6 @@ impl<'a> ResponseBuilder<'a> {
         self.mime_type = Some(mime_type);
         self
     }
-    // TODO: does this make more sense to just be bytes?
     pub fn body(mut self, body: Option<&'a [u8]>) -> Self {
         self.body = body;
         self
@@ -73,7 +71,7 @@ impl<'a> ResponseBuilder<'a> {
             self.encoding = Some(
                 encoding_string
                     .split(",")
-                    .map(|e| Encoding::from(e))
+                    .map(Encoding::from)
                     .collect::<Vec<Encoding>>(),
             );
         }
@@ -83,11 +81,7 @@ impl<'a> ResponseBuilder<'a> {
         let response = Response {
             status_code: self.status_code.unwrap_or(StatusCode::Ok),
             body: self.body,
-            content_length: if let Some(b) = self.body {
-                Some(b.len())
-            } else {
-                None
-            },
+            content_length: self.body.map(|b| b.len()),
             mime_type: self.mime_type,
             encoding: self.encoding,
         };

@@ -59,7 +59,7 @@ pub enum Headers {
     ContentEncoding,
     AcceptEncoding,
     ContentType,
-    Unknown(String),
+    Unknown,
 }
 
 impl From<&str> for Headers {
@@ -70,7 +70,7 @@ impl From<&str> for Headers {
             "Content-Encoding" => Self::ContentEncoding,
             "Accept-Encoding" => Self::AcceptEncoding,
             "Content-Type" => Self::ContentType,
-            _ => Self::Unknown(value.to_owned()),
+            _ => Self::Unknown,
         }
     }
 }
@@ -91,7 +91,7 @@ impl From<&String> for Headers {
 pub enum MimeType {
     PlainText,
     OctetStream,
-    Unknown(String)
+    Unknown
 }
 
 impl From<&str> for MimeType {
@@ -99,7 +99,7 @@ impl From<&str> for MimeType {
         match value {
             "text/plain" => Self::PlainText,
             "application/octet-stream" => Self::OctetStream,
-            _ => Self::Unknown(value.into())
+            _ => Self::Unknown
         }
     }
 }
