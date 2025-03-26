@@ -39,7 +39,7 @@ impl Router {
         Router { dir }
     }
 
-    pub fn route<'a>(&self, stream: &'a TcpStream) -> Result<()> {
+    pub fn route(&self, stream: &TcpStream) -> Result<()> {
         let req = Request::try_new(stream)?;
         let arg = HandlerArg {
             req: &req,

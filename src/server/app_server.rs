@@ -70,7 +70,10 @@ impl Server {
         }
 
         info!("Shutting down server...");
-        drop(&self.thread_pool);
+        // Clippy tells me that the explicit drop() call on a reference does nothing, so we will see how this
+        // changes behaviour on the thread pool.
+        // TODO: may have to move the logs into the drop implmentation, let's see
+        let _ = &self.thread_pool;
         info!("Server shutdown complete.");
         Ok(())
     }
