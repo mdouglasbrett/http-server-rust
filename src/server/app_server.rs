@@ -46,11 +46,10 @@ impl Server {
                 Ok((stream, addr)) => {
                     info!("Connection from: {}", addr);
                     let router = Arc::clone(&self.router);
-                    let req = Request::try_new(&stream)?;
                     self.thread_pool.execute(move || {
                         // TODO: we've now lost the ability to write back to the stream
                         // We should pass the stream and do the req creation in the router
-                        if let Err(e) = router.route(&req) {
+                        if let Err(e) = router.route(&stream) {
                             error!("Error handling request, {}", e);
                         } else {
                             info!("Request handled OK");

@@ -1,12 +1,9 @@
-use crate::{
-    http::{Request, Response},
-    Result,
-};
+use crate::{http::Request, Result};
 
 pub struct FileHandler;
 
 impl FileHandler {
-    pub fn handle(request: &Request, dir: String) -> Result<Response> {
-        todo!()
+    pub fn handle(_request: &Request, _dir: String) -> Result<()> {
+        Ok(())
     }
 }

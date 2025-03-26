@@ -6,12 +6,13 @@ use crate::{
 pub struct UserAgentHandler;
 
 impl UserAgentHandler {
-    pub fn handle(request: &Request) -> Result<Response> {
+    pub fn handle(request: &Request) -> Result<()> {
         let body = request.get_header(Headers::UserAgent).map(|b| b.as_bytes());
-        Response::builder()
+        let _resp = Response::builder()
             .body(body)
             .encoding(request.get_header(Headers::ContentEncoding))
             .mime_type(MimeType::PlainText)
-            .build()
+            .build();
+        Ok(())
     }
 }
