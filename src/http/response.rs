@@ -47,6 +47,9 @@ impl<'a> Response<'a> {
             .build()
     }
     pub fn as_bytes(&self) -> &'a [u8] {
+        // TODO: might need to add some kind of static protocol string field into the struct to
+        // build a proper response.
+        // Also, should I do the compression on build, or here?
         todo!()
     }
 }
