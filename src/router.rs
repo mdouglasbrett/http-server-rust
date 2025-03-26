@@ -1,9 +1,8 @@
-use std::net::TcpStream;
+use std::{io::Write, net::TcpStream};
 
 use crate::{
-    errors::ClientError,
     handlers::*,
-    http::Request,
+    http::{Request, Response},
     Result,
 };
 
@@ -28,7 +27,6 @@ impl From<&str> for Route {
     }
 }
 
-
 #[derive(Debug)]
 pub struct Router {
     dir: String,
@@ -39,19 +37,23 @@ impl Router {
         Router { dir }
     }
 
-    pub fn route(&self, stream: &TcpStream) -> Result<()> {
+    pub fn route(&self, stream: &mut TcpStream) -> Result<()> {
         let req = Request::try_new(stream)?;
         let arg = HandlerArg {
             req: &req,
             stream,
-            target_dir: &self.dir
+            target_dir: &self.dir,
         };
-        match req.route {
+        if let Err(e) = match req.route {
             Route::Echo => EchoHandler::handle(arg),
             Route::Files => FileHandler::handle(arg),
             Route::UserAgent => UserAgentHandler::handle(arg),
             Route::Empty => EmptyHandler::handle(arg),
-            Route::Unknown => Err(ClientError::NotFound.into()),
+            Route::Unknown => NotFoundHandler::handle(arg),
+        } {
+            ErrorHandler::handle((stream, e))
+        } else {
+            Ok(())
         }
     }
 }

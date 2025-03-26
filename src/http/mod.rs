@@ -28,7 +28,7 @@ impl From<Option<&str>> for Method {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Encoding {
     Gzip,
     Unknown

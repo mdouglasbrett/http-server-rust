@@ -1,4 +1,4 @@
-use super::{Encoding, MimeType, StatusCode};
+use super::{Encoding, MimeType, ServerError, StatusCode};
 use crate::Result;
 
 #[derive(Debug)]
@@ -14,11 +14,18 @@ impl<'a> Response<'a> {
     pub fn builder() -> ResponseBuilder<'a> {
         ResponseBuilder::new()
     }
-    // TODO: what do we actually want to validate here?
-    // Possibly mime type and or encoding?
     // Encoding -> Check for gzip
     fn validate(&self) -> Result<()> {
-        Ok(())
+        if let Some(encoding_vec) = &self.encoding {
+            if encoding_vec.contains(&Encoding::Gzip) {
+                Ok(())
+            } else {
+                // TODO: check the spec, this might be wrong (or even total overkill)
+                Err(ServerError::NotImplemented.into())
+            }
+        } else {
+            Ok(())
+        }
     }
 
     pub fn ok() -> Result<Response<'a>> {
@@ -38,6 +45,9 @@ impl<'a> Response<'a> {
         ResponseBuilder::new()
             .status_code(StatusCode::ServerError)
             .build()
+    }
+    pub fn as_bytes(&self) -> &'a [u8] {
+        todo!()
     }
 }
 
