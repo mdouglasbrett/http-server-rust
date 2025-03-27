@@ -1,4 +1,4 @@
-use super::{Encoding, MimeType, ServerError, StatusCode};
+use super::{Encoding, Headers, MimeType, ServerError, StatusCode};
 use crate::{Result, HTTP_VERSION};
 
 #[derive(Debug)]
@@ -48,12 +48,19 @@ impl<'a> Response<'a> {
     }
     pub fn as_bytes(&self) -> Vec<u8> {
         // TODO: compression on .build()
-        // TODO: implement Display for all the Response fields where needed
-        let mut response = format!("{} {}\r\n", HTTP_VERSION, self.status_code)
-            .as_bytes()
-            .to_vec();
+        let mut response = format!(
+            "{} {}\r\n{}: {content_type}\r\n{}: {content_length}",
+            HTTP_VERSION,
+            self.status_code,
+            Headers::ContentType,
+            Headers::ContentLength,
+            content_type = self.mime_type.as_ref().unwrap_or(&MimeType::Unknown),
+            // usize implements copy
+            content_length = self.content_length.unwrap_or(0),
+        )
+        .as_bytes()
+        .to_vec();
         if self.body.is_some_and(|b| !b.is_empty()) {
-            // TODO: handle this unwrap?
             response.extend_from_slice(self.body.unwrap());
         }
         response

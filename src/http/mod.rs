@@ -5,9 +5,9 @@ mod response;
 use std::fmt::Display;
 
 // pub use deprecated_response::Response as DeprecatedResponse;
+pub use crate::errors::{ClientError, ServerError};
 pub use request::Request;
 pub use response::Response;
-pub use crate::errors::{ClientError, ServerError};
 
 #[derive(Debug, PartialEq)]
 pub enum Method {
@@ -33,7 +33,7 @@ impl From<Option<&str>> for Method {
 #[derive(Debug, PartialEq, Clone)]
 pub enum Encoding {
     Gzip,
-    Unknown
+    Unknown,
 }
 
 impl From<&str> for Encoding {
@@ -61,11 +61,16 @@ impl Display for StatusCode {
             Self::ClientError => write!(f, "400"),
             Self::NotFound => write!(f, "404"),
             Self::ServerError => write!(f, "500"),
-            Self::NotImplemented => write!(f, "501")
+            Self::NotImplemented => write!(f, "501"),
         }
     }
 }
 
+
+// TODO: I can't just use an .into() on these, because of the _ in the from.
+// I would have to implement TryFrom and then account for the Error. I am on the fence about
+// this...
+// TODO: implement TryFrom
 
 #[derive(Debug, Hash, PartialEq, Eq)]
 pub enum Headers {
@@ -102,11 +107,25 @@ impl From<&String> for Headers {
     }
 }
 
+// TODO: I don't think this is great...
+impl Display for Headers {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+       match self {
+           Self::UserAgent => write!(f, "User-Agent"),
+           Self::ContentLength => write!(f, "Content-Length"),
+           Self::ContentEncoding => write!(f, "Content-Encoding"),
+           Self::AcceptEncoding => write!(f, "Accept-Encoding"),
+           Self::ContentType => write!(f, "Content-Type"),
+           Self::Unknown => write!(f, "")
+       } 
+    }
+}
+
 #[derive(Debug)]
 pub enum MimeType {
     PlainText,
     OctetStream,
-    Unknown
+    Unknown,
 }
 
 impl From<&str> for MimeType {
@@ -114,7 +133,17 @@ impl From<&str> for MimeType {
         match value {
             "text/plain" => Self::PlainText,
             "application/octet-stream" => Self::OctetStream,
-            _ => Self::Unknown
+            _ => Self::Unknown,
+        }
+    }
+}
+
+impl Display for MimeType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::PlainText => write!(f, "text/plain"),
+            Self::OctetStream => write!(f, "application/octet-stream"),
+            Self::Unknown => write!(f, ""),
         }
     }
 }
