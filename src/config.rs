@@ -1,7 +1,10 @@
 use lexopt::prelude::*;
 
+// TODO: use this as the base, rather than let them target any dir in the system 
 const TARGET_DIR: &str = "/tmp/";
 const ADDRESS: &str = "127.0.0.1:4221";
+
+pub const HTTP_VERSION: &str = "HTTP/1.1";
 
 #[derive(Debug)]
 pub struct Config {

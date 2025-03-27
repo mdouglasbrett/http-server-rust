@@ -2,6 +2,8 @@
 mod request;
 mod response;
 
+use std::fmt::Display;
+
 // pub use deprecated_response::Response as DeprecatedResponse;
 pub use request::Request;
 pub use response::Response;
@@ -45,12 +47,25 @@ impl From<&str> for Encoding {
 
 #[derive(Debug)]
 pub enum StatusCode {
-    Ok = 200,
-    NotFound = 404,
-    ServerError = 500,
-    ClientError = 400,
-    NotImplemented = 501,
+    Ok,
+    NotFound,
+    ServerError,
+    ClientError,
+    NotImplemented,
 }
+
+impl Display for StatusCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Ok => write!(f, "200"),
+            Self::ClientError => write!(f, "400"),
+            Self::NotFound => write!(f, "404"),
+            Self::ServerError => write!(f, "500"),
+            Self::NotImplemented => write!(f, "501")
+        }
+    }
+}
+
 
 #[derive(Debug, Hash, PartialEq, Eq)]
 pub enum Headers {

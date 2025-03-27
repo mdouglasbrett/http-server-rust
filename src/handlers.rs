@@ -32,14 +32,14 @@ impl Handler for EchoHandler {
             .encoding(r.req.get_header(Headers::ContentEncoding))
             .mime_type(MimeType::PlainText)
             .build()?;
-        r.stream.write_all(resp.as_bytes())?;
+        r.stream.write_all(&resp.as_bytes())?;
         Ok(())
     }
 }
 impl Handler for EmptyHandler {
     fn handle(r: HandlerArg) -> Result<()> {
         let resp = Response::ok()?;
-        r.stream.write_all(resp.as_bytes())?;
+        r.stream.write_all(&resp.as_bytes())?;
         Ok(())
     }
 }
@@ -56,7 +56,7 @@ impl Handler for UserAgentHandler {
             .encoding(r.req.get_header(Headers::ContentEncoding))
             .mime_type(MimeType::PlainText)
             .build()?;
-        r.stream.write_all(resp.as_bytes())?;
+        r.stream.write_all(&resp.as_bytes())?;
         Ok(())
     }
 }
@@ -64,7 +64,7 @@ impl Handler for UserAgentHandler {
 impl Handler for NotFoundHandler {
     fn handle(r: HandlerArg) -> Result<()> {
         let resp = Response::not_found()?;
-        r.stream.write_all(resp.as_bytes())?;
+        r.stream.write_all(&resp.as_bytes())?;
         Ok(())
     }
 }

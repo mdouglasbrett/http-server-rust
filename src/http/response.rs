@@ -1,5 +1,5 @@
 use super::{Encoding, MimeType, ServerError, StatusCode};
-use crate::Result;
+use crate::{Result, HTTP_VERSION};
 
 #[derive(Debug)]
 pub struct Response<'a> {
@@ -46,11 +46,17 @@ impl<'a> Response<'a> {
             .status_code(StatusCode::ServerError)
             .build()
     }
-    pub fn as_bytes(&self) -> &'a [u8] {
-        // TODO: might need to add some kind of static protocol string field into the struct to
-        // build a proper response.
-        // Also, should I do the compression on build, or here?
-        todo!()
+    pub fn as_bytes(&self) -> Vec<u8> {
+        // TODO: compression on .build()
+        // TODO: implement Display for all the Response fields where needed
+        let mut response = format!("{} {}\r\n", HTTP_VERSION, self.status_code)
+            .as_bytes()
+            .to_vec();
+        if self.body.is_some_and(|b| !b.is_empty()) {
+            // TODO: handle this unwrap?
+            response.extend_from_slice(self.body.unwrap());
+        }
+        response
     }
 }
 
