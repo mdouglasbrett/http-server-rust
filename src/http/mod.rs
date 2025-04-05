@@ -147,3 +147,4 @@ impl Display for MimeType {
         }
     }
 }
+

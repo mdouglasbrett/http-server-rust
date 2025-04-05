@@ -28,7 +28,7 @@ impl Handler for EchoHandler {
     fn handle(r: HandlerArg) -> Result<()> {
         let body = r.req.body.as_slice();
         let resp = Response::builder()
-            .body(Some(body))
+            .body(Some(body.to_owned()))
             .encoding(r.req.get_header(Headers::ContentEncoding))
             .mime_type(MimeType::PlainText)
             .build()?;
@@ -48,11 +48,15 @@ impl Handler for FileHandler {
         Ok(())
     }
 }
+
+// TODO: All of the assignment here! Is this stupid?
 impl Handler for UserAgentHandler {
     fn handle(r: HandlerArg) -> Result<()> {
-        let body = r.req.get_header(Headers::UserAgent).map(|b| b.as_bytes());
+        // TODO: is it worth having this in the map as bytes?
+        let body = r.req.get_header(Headers::UserAgent).map(|b| b.to_owned());
         let resp = Response::builder()
-            .body(body)
+            // TODO: need to get the string out
+            .body(Some(body.unwrap_or(String::from("")).as_bytes().to_owned()))
             .encoding(r.req.get_header(Headers::ContentEncoding))
             .mime_type(MimeType::PlainText)
             .build()?;

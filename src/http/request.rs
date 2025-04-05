@@ -14,13 +14,14 @@ pub struct Request {
     // https://steveklabnik.com/writing/when-should-i-use-string-vs-str/
     pub path: String,
     pub headers: HashMap<Headers, String>,
+    // Is it better to just have a String?
     pub body: Vec<u8>,
 }
 
 // TODO: RequestBuilder
-
+// TODO: this should be implmented as TryFrom 
 impl Request {
-    pub fn try_new(value: &TcpStream) -> Result<Self> {
+    pub fn try_new<T: Read>(value: &mut T) -> Result<Self> {
         let mut buf = BufReader::new(value);
         let mut start_line = String::new();
         let _ = buf.read_line(&mut start_line)?;
@@ -74,6 +75,8 @@ impl Request {
 
         let mut body_buf: Vec<u8> = vec![];
 
+        // TODO: should this even happen here? we are handling the echo route
+        // which, let's be honest we should do in the handler
         if route == Route::Echo && path_parts.len() > 1 {
             body_buf.extend(path_parts[1].as_bytes());
         } else {
@@ -93,6 +96,7 @@ impl Request {
         })
     }
     pub fn get_header(&self, header: Headers) -> Option<&String> {
+        // TODO: this reference... this causes knock on effects
         let header_val = self.headers.get(&header);
         header_val
     }

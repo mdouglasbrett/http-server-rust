@@ -2,16 +2,16 @@ use super::{Encoding, Headers, MimeType, ServerError, StatusCode};
 use crate::{Result, HTTP_VERSION};
 
 #[derive(Debug)]
-pub struct Response<'a> {
+pub struct Response {
     status_code: StatusCode,
-    body: Option<&'a [u8]>,
+    body: Option<Vec<u8>>,
     mime_type: Option<MimeType>,
     content_length: Option<usize>,
     encoding: Option<Vec<Encoding>>,
 }
 
-impl<'a> Response<'a> {
-    pub fn builder() -> ResponseBuilder<'a> {
+impl Response {
+    pub fn builder() -> ResponseBuilder {
         ResponseBuilder::new()
     }
     // Encoding -> Check for gzip
@@ -28,20 +28,20 @@ impl<'a> Response<'a> {
         }
     }
 
-    pub fn ok() -> Result<Response<'a>> {
+    pub fn ok() -> Result<Response> {
         ResponseBuilder::new().build()
     }
-    pub fn not_found() -> Result<Response<'a>> {
+    pub fn not_found() -> Result<Response> {
         ResponseBuilder::new()
             .status_code(StatusCode::NotFound)
             .build()
     }
-    pub fn client_error() -> Result<Response<'a>> {
+    pub fn client_error() -> Result<Response> {
         ResponseBuilder::new()
             .status_code(StatusCode::ClientError)
             .build()
     }
-    pub fn server_error() -> Result<Response<'a>> {
+    pub fn server_error() -> Result<Response> {
         ResponseBuilder::new()
             .status_code(StatusCode::ServerError)
             .build()
@@ -60,22 +60,22 @@ impl<'a> Response<'a> {
         )
         .as_bytes()
         .to_vec();
-        if self.body.is_some_and(|b| !b.is_empty()) {
-            response.extend_from_slice(self.body.unwrap());
+        if self.body.as_ref().is_some_and(|b| !b.is_empty()) {
+            response.extend_from_slice(&self.body.as_ref().unwrap());
         }
         response
     }
 }
 
 #[derive(Debug, Default)]
-pub struct ResponseBuilder<'a> {
+pub struct ResponseBuilder {
     status_code: Option<StatusCode>,
-    body: Option<&'a [u8]>,
+    body: Option<Vec<u8>>,
     mime_type: Option<MimeType>,
     encoding: Option<Vec<Encoding>>,
 }
 
-impl<'a> ResponseBuilder<'a> {
+impl ResponseBuilder {
     pub fn new() -> Self {
         Self::default()
     }
@@ -88,7 +88,7 @@ impl<'a> ResponseBuilder<'a> {
         self.mime_type = Some(mime_type);
         self
     }
-    pub fn body(mut self, body: Option<&'a [u8]>) -> Self {
+    pub fn body(mut self, body: Option<Vec<u8>>) -> Self {
         self.body = body;
         self
     }
@@ -103,11 +103,13 @@ impl<'a> ResponseBuilder<'a> {
         }
         self
     }
-    pub fn build(self) -> Result<Response<'a>> {
+    pub fn build(self) -> Result<Response> {
         let response = Response {
             status_code: self.status_code.unwrap_or(StatusCode::Ok),
             body: self.body,
-            content_length: self.body.map(|b| b.len()),
+            // TODO: get length off enum
+            //content_length: self.body.map(|b| b.len()),
+            content_length: Some(0),
             mime_type: self.mime_type,
             encoding: self.encoding,
         };
