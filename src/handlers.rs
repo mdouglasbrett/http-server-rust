@@ -1,6 +1,6 @@
 use crate::{
     errors::AppError,
-    http::{Headers, MimeType, Request, Response},
+    http::{ClientError, Headers, MimeType, Request, Response, ServerError},
     Result,
 };
 use std::{io::Write, net::TcpStream};
@@ -51,7 +51,10 @@ impl Handler for FileHandler {
 
 impl Handler for UserAgentHandler {
     fn handle(r: HandlerArg) -> Result<()> {
-        let b = r.req.get_header(Headers::UserAgent).map(|b| b.as_bytes().to_owned());
+        let b = r
+            .req
+            .get_header(Headers::UserAgent)
+            .map(|b| b.as_bytes().to_owned());
         let resp = Response::builder()
             .body(b)
             .encoding(r.req.get_header(Headers::ContentEncoding))
@@ -71,7 +74,23 @@ impl Handler for NotFoundHandler {
 }
 
 impl ErrorHandler {
-    pub fn handle(_a: (&mut TcpStream, AppError)) -> Result<()> {
-        todo!();
+    pub fn handle(a: (&mut TcpStream, AppError)) -> Result<()> {
+        match a.1 {
+            AppError::Client(ClientError::BadRequest) => {
+                let resp = Response::client_error()?;
+                a.0.write_all(&resp.as_bytes())?;
+            }
+            AppError::Server(ServerError::NotImplemented) => {
+                let resp = Response::builder()
+                    .status_code(crate::http::StatusCode::NotImplemented)
+                    .build()?;
+                a.0.write_all(&resp.as_bytes())?;
+            }
+            _ => {
+                let resp = Response::server_error()?;
+                a.0.write_all(&resp.as_bytes())?;
+            }
+        }
+        Ok(())
     }
 }
