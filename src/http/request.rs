@@ -1,6 +1,6 @@
 use std::{
     collections::HashMap,
-    io::{BufRead, BufReader, Read}, net::TcpStream,
+    io::{BufRead, BufReader, Read}
 };
 
 use crate::{errors::ClientError, router::Route, utils::get_path_parts, Result};
@@ -14,7 +14,6 @@ pub struct Request {
     // https://steveklabnik.com/writing/when-should-i-use-string-vs-str/
     pub path: String,
     pub headers: HashMap<Headers, String>,
-    // Is it better to just have a String?
     pub body: Vec<u8>,
 }
 
@@ -75,8 +74,6 @@ impl Request {
 
         let mut body_buf: Vec<u8> = vec![];
 
-        // TODO: should this even happen here? we are handling the echo route
-        // which, let's be honest we should do in the handler
         if route == Route::Echo && path_parts.len() > 1 {
             body_buf.extend(path_parts[1].as_bytes());
         } else {
@@ -96,7 +93,6 @@ impl Request {
         })
     }
     pub fn get_header(&self, header: Headers) -> Option<&String> {
-        // TODO: this reference... this causes knock on effects
         let header_val = self.headers.get(&header);
         header_val
     }

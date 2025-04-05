@@ -1,5 +1,4 @@
 use super::ThreadPool;
-use crate::http::Request;
 use crate::router::Router;
 use crate::{Config, Result};
 use std::net::TcpListener;
@@ -54,12 +53,14 @@ impl Server {
                         }
                     })?;
                 }
-                // The listener is non-blocking, so if there are no connections waiting we can just sleep for a bit and try again
+                // The listener is non-blocking, so if there are no connections
+                // waiting we can just sleep for a bit and try again
                 Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
                     std::thread::sleep(Duration::from_millis(100));
                     continue;
                 }
-                // If there is an error accepting a connection, we'll just print it and continue
+                // If there is an error accepting a connection, we'll just 
+                // print it and continue
                 Err(e) => {
                     error!("Connection error: {:?}", e);
                     continue;
@@ -68,8 +69,8 @@ impl Server {
         }
 
         info!("Shutting down server...");
-        // Clippy tells me that the explicit drop() call on a reference does nothing, so we will see how this
-        // changes behaviour on the thread pool.
+        // Clippy tells me that the explicit drop() call on a reference does 
+        // nothing, so we will see how this changes behaviour on the thread pool.
         // TODO: may have to move the logs into the drop implmentation, let's see
         let _ = &self.thread_pool;
         info!("Server shutdown complete.");

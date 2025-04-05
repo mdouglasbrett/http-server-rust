@@ -11,8 +11,6 @@ use crate::{
     Result,
 };
 
-const ALLOWED_ENCODING: &str = "gzip";
-
 pub fn get_path_parts(s: &str) -> Vec<&str> {
     s.split("/")
         .filter(|s| !s.is_empty())

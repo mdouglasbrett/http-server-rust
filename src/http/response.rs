@@ -61,7 +61,7 @@ impl Response {
         .as_bytes()
         .to_vec();
         if self.body.as_ref().is_some_and(|b| !b.is_empty()) {
-            response.extend_from_slice(&self.body.as_ref().unwrap());
+            response.extend_from_slice(self.body.as_ref().unwrap());
         }
         response
     }

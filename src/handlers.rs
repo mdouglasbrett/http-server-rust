@@ -49,14 +49,11 @@ impl Handler for FileHandler {
     }
 }
 
-// TODO: All of the assignment here! Is this stupid?
 impl Handler for UserAgentHandler {
     fn handle(r: HandlerArg) -> Result<()> {
-        // TODO: is it worth having this in the map as bytes?
-        let body = r.req.get_header(Headers::UserAgent).map(|b| b.to_owned());
+        let b = r.req.get_header(Headers::UserAgent).map(|b| b.as_bytes().to_owned());
         let resp = Response::builder()
-            // TODO: need to get the string out
-            .body(Some(body.unwrap_or(String::from("")).as_bytes().to_owned()))
+            .body(b)
             .encoding(r.req.get_header(Headers::ContentEncoding))
             .mime_type(MimeType::PlainText)
             .build()?;

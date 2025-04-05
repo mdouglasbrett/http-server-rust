@@ -1,10 +1,6 @@
-use std::{io::Write, net::TcpStream};
+use std::net::TcpStream;
 
-use crate::{
-    handlers::*,
-    http::{Request, Response},
-    Result,
-};
+use crate::{handlers::*, http::Request, Result};
 
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub enum Route {
