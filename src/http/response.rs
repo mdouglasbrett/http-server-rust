@@ -36,6 +36,11 @@ impl Response {
             .status_code(StatusCode::NotFound)
             .build()
     }
+    pub fn created() -> Result<Response> {
+        ResponseBuilder::new()
+            .status_code(StatusCode::Created)
+            .build()
+    }
     pub fn client_error() -> Result<Response> {
         ResponseBuilder::new()
             .status_code(StatusCode::ClientError)
@@ -114,6 +119,7 @@ impl ResponseBuilder {
             encoding: self.encoding,
         };
         response.validate()?;
+        // TODO: if we are validated, we should be able to compress now
         Ok(response)
     }
 }

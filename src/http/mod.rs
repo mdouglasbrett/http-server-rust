@@ -48,6 +48,7 @@ impl From<&str> for Encoding {
 #[derive(Debug)]
 pub enum StatusCode {
     Ok,
+    Created,
     NotFound,
     ServerError,
     ClientError,
@@ -57,11 +58,12 @@ pub enum StatusCode {
 impl Display for StatusCode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Ok => write!(f, "200"),
-            Self::ClientError => write!(f, "400"),
-            Self::NotFound => write!(f, "404"),
-            Self::ServerError => write!(f, "500"),
-            Self::NotImplemented => write!(f, "501"),
+            Self::Ok => write!(f, "200 OK"),
+            Self::Created => write!(f, "201 Created"),
+            Self::ClientError => write!(f, "400 Bad Request"),
+            Self::NotFound => write!(f, "404 Not Found"),
+            Self::ServerError => write!(f, "500 Internal Server Error"),
+            Self::NotImplemented => write!(f, "501 Not Implemented"),
         }
     }
 }

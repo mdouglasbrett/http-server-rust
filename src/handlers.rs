@@ -1,6 +1,6 @@
 use crate::{
     errors::AppError,
-    http::{ClientError, Headers, MimeType, Request, Response, ServerError},
+    http::{ClientError, Headers, Method, MimeType, Request, Response, ServerError},
     Result,
 };
 use std::{io::Write, net::TcpStream};
@@ -44,7 +44,17 @@ impl Handler for EmptyHandler {
     }
 }
 impl Handler for FileHandler {
-    fn handle(_r: HandlerArg) -> Result<()> {
+    fn handle(r: HandlerArg) -> Result<()> {
+        // TODO:
+        // We are going to need to differentiate based on METHOD
+        // Do we need a File type?
+        if r.req.method == Method::Get {
+            // TODO: how testable is this going to be?
+            // How do I abstract the IO part of this? Do I even need to?
+        } else {
+            let resp = Response::created()?;
+            r.stream.write_all(&resp.as_bytes)?;
+        }
         Ok(())
     }
 }
