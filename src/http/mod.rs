@@ -1,10 +1,8 @@
-// mod deprecated_response;
 mod request;
 mod response;
 
 use std::fmt::Display;
 
-// pub use deprecated_response::Response as DeprecatedResponse;
 pub use crate::errors::{ClientError, ServerError};
 pub use request::Request;
 pub use response::Response;
