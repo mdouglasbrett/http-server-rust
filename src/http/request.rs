@@ -3,9 +3,17 @@ use std::{
     io::{BufRead, BufReader, Read}
 };
 
-use crate::{errors::ClientError, router::Route, utils::get_path_parts, Result};
+use crate::{errors::ClientError, router::Route, Result};
 
 use super::{Headers, Method};
+
+// TODO: where should I put this, we are duplicating, but I don't want a utils
+// module
+fn get_path_parts(s: &str) -> Vec<&str> {
+    s.split("/")
+        .filter(|s| !s.is_empty())
+        .collect::<Vec<&str>>()
+}
 
 #[derive(Debug, PartialEq)]
 pub struct Request {

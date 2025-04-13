@@ -1,9 +1,20 @@
 use crate::{
     errors::AppError,
-    http::{ClientError, Headers, Method, MimeType, Request, Response, ServerError},
+    http::{ClientError, Headers, Method, MimeType, Request, Response, ServerError, StatusCode},
     Result,
 };
-use std::{io::Write, net::TcpStream};
+use std::{
+    fs::{read, write},
+    io::Write,
+    net::TcpStream,
+    path::Path,
+};
+// TODO: I don't really want a utils module
+fn get_path_parts(s: &str) -> Vec<&str> {
+    s.split("/")
+        .filter(|s| !s.is_empty())
+        .collect::<Vec<&str>>()
+}
 
 #[derive(Debug)]
 pub struct HandlerArg<'a> {
@@ -29,7 +40,7 @@ impl Handler for EchoHandler {
         let body = r.req.body.as_slice();
         let resp = Response::builder()
             .body(Some(body.to_owned()))
-            .encoding(r.req.get_header(Headers::ContentEncoding))
+            .encoding(r.req.get_header(Headers::AcceptEncoding))
             .mime_type(MimeType::PlainText)
             .build()?;
         r.stream.write_all(&resp.as_bytes())?;
@@ -43,17 +54,28 @@ impl Handler for EmptyHandler {
         Ok(())
     }
 }
+// TODO: this has side effects, how do we do this well?
+// TODO: use temp dir, manage it via cargo env?
 impl Handler for FileHandler {
     fn handle(r: HandlerArg) -> Result<()> {
-        // TODO:
-        // We are going to need to differentiate based on METHOD
-        // Do we need a File type?
+        let filename = get_path_parts(&r.req.path)[1];
+        let path = Path::new(r.target_dir).join(filename);
         if r.req.method == Method::Get {
-            // TODO: how testable is this going to be?
-            // How do I abstract the IO part of this? Do I even need to?
+            if let Ok(body) = read(path) {
+                let resp = Response::builder()
+                    .status_code(StatusCode::Ok)
+                    .body(Some(body))
+                    .encoding(r.req.get_header(Headers::AcceptEncoding))
+                    .mime_type(MimeType::OctetStream)
+                    .build()?;
+                r.stream.write_all(&resp.as_bytes())?;
+            } else {
+                return Err(ClientError::NotFound.into());
+            }
         } else {
+            write(path, &r.req.body)?;
             let resp = Response::created()?;
-            r.stream.write_all(&resp.as_bytes)?;
+            r.stream.write_all(&resp.as_bytes())?;
         }
         Ok(())
     }
