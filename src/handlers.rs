@@ -9,12 +9,6 @@ use std::{
     net::TcpStream,
     path::Path,
 };
-// TODO: I don't really want a utils module
-fn get_path_parts(s: &str) -> Vec<&str> {
-    s.split("/")
-        .filter(|s| !s.is_empty())
-        .collect::<Vec<&str>>()
-}
 
 #[derive(Debug)]
 pub struct HandlerArg<'a> {
@@ -58,7 +52,7 @@ impl Handler for EmptyHandler {
 // TODO: use temp dir, manage it via cargo env?
 impl Handler for FileHandler {
     fn handle(r: HandlerArg) -> Result<()> {
-        let filename = get_path_parts(&r.req.path)[1];
+        let filename = &r.req.path_parts[1];
         let path = Path::new(r.target_dir).join(filename);
         if r.req.method == Method::Get {
             if let Ok(body) = read(path) {

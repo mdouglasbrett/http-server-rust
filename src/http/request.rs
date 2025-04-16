@@ -7,12 +7,11 @@ use crate::{errors::ClientError, router::Route, Result};
 
 use super::{Headers, Method};
 
-// TODO: where should I put this, we are duplicating, but I don't want a utils
-// module
-fn get_path_parts(s: &str) -> Vec<&str> {
+fn get_path_parts(s: &str) -> Vec<String> {
     s.split("/")
         .filter(|s| !s.is_empty())
-        .collect::<Vec<&str>>()
+        .map(|s| s.to_owned())
+        .collect()
 }
 
 #[derive(Debug, PartialEq)]
@@ -23,6 +22,7 @@ pub struct Request {
     pub path: String,
     pub headers: HashMap<Headers, String>,
     pub body: Vec<u8>,
+    pub path_parts: Vec<String>
 }
 
 // TODO: RequestBuilder
@@ -54,7 +54,7 @@ impl Request {
         let route = if path_parts.is_empty() {
             Route::from("/")
         } else {
-            Route::from(path_parts[0])
+            Route::from(&path_parts[0])
         };
 
         let mut headers = HashMap::new();
@@ -98,6 +98,7 @@ impl Request {
             method,
             headers,
             body: body_buf,
+            path_parts
         })
     }
     pub fn get_header(&self, header: Headers) -> Option<&String> {

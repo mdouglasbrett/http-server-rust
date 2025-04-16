@@ -23,6 +23,12 @@ impl From<&str> for Route {
     }
 }
 
+impl From<&String> for Route {
+    fn from(s: &String) -> Self {
+        Route::from(s.as_str())
+    }
+}
+
 #[derive(Debug)]
 pub struct Router {
     dir: String,
