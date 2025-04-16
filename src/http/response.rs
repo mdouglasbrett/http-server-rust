@@ -14,14 +14,15 @@ impl Response {
     pub fn builder() -> ResponseBuilder {
         ResponseBuilder::new()
     }
-    // Encoding -> Check for gzip
-    fn validate(&self) -> Result<()> {
+    fn validate(&mut self) -> Result<()> {
         if let Some(encoding_vec) = &self.encoding {
+            // Encoding -> Check for Gzip
             if encoding_vec.contains(&Encoding::Gzip) {
+                // TODO: compress here and set the content length
                 Ok(())
             } else {
-                // TODO: check the spec, this might be wrong (or even total overkill)
-                Err(ServerError::NotImplemented.into())
+                // TODO: set the encoding to None and set content length
+                todo!()
             }
         } else {
             Ok(())
@@ -52,7 +53,6 @@ impl Response {
             .build()
     }
     pub fn as_bytes(&self) -> Vec<u8> {
-        // TODO: compression on .build()
         let mut response = format!(
             "{} {}\r\n{}: {content_type}\r\n{}: {content_length}",
             HTTP_VERSION,
@@ -109,17 +109,15 @@ impl ResponseBuilder {
         self
     }
     pub fn build(self) -> Result<Response> {
-        let response = Response {
+        let mut response = Response {
             status_code: self.status_code.unwrap_or(StatusCode::Ok),
             body: self.body,
-            // TODO: get length off enum
-            //content_length: self.body.map(|b| b.len()),
-            content_length: Some(0),
+            content_length: None,
             mime_type: self.mime_type,
             encoding: self.encoding,
         };
+        // TODO: check for encoding, compress and set content length
         response.validate()?;
-        // TODO: if we are validated, we should be able to compress now
         Ok(response)
     }
 }
