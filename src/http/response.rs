@@ -1,12 +1,13 @@
-use super::{Encoding, Headers, MimeType, ServerError, StatusCode};
+use super::{Encoding, Headers, MimeType, StatusCode};
 use crate::{Result, HTTP_VERSION};
+use flate2::{write::GzEncoder, Compression};
+use std::io::Write;
 
 #[derive(Debug)]
 pub struct Response {
     status_code: StatusCode,
     body: Option<Vec<u8>>,
     mime_type: Option<MimeType>,
-    content_length: Option<usize>,
     encoding: Option<Vec<Encoding>>,
 }
 
@@ -18,11 +19,14 @@ impl Response {
         if let Some(encoding_vec) = &self.encoding {
             // Encoding -> Check for Gzip
             if encoding_vec.contains(&Encoding::Gzip) {
-                // TODO: compress here and set the content length
+                let mut b = GzEncoder::new(Vec::new(), Compression::default());
+                let uncompressed = self.body.take();
+                let _ = b.write_all(&uncompressed.unwrap_or_default());
+                self.body = b.finish().ok();
                 Ok(())
             } else {
-                // TODO: set the encoding to None and set content length
-                todo!()
+                self.encoding = None;
+                Ok(())
             }
         } else {
             Ok(())
@@ -52,23 +56,29 @@ impl Response {
             .status_code(StatusCode::ServerError)
             .build()
     }
+    // TODO: guard against calling this before build with type state?
     pub fn as_bytes(&self) -> Vec<u8> {
-        let mut response = format!(
-            "{} {}\r\n{}: {content_type}\r\n{}: {content_length}",
-            HTTP_VERSION,
-            self.status_code,
-            Headers::ContentType,
-            Headers::ContentLength,
-            content_type = self.mime_type.as_ref().unwrap_or(&MimeType::Unknown),
-            // usize implements copy
-            content_length = self.content_length.unwrap_or(0),
-        )
-        .as_bytes()
-        .to_vec();
-        if self.body.as_ref().is_some_and(|b| !b.is_empty()) {
-            response.extend_from_slice(self.body.as_ref().unwrap());
+        let empty: Vec<u8> = Vec::new();
+        let content = self.body.as_ref().unwrap_or(&empty);
+        if !content.is_empty() {
+            let mut response = format!(
+                "{} {}\r\n{}: {content_type}\r\n{}: {content_length}",
+                HTTP_VERSION,
+                self.status_code,
+                Headers::ContentType,
+                Headers::ContentLength,
+                content_type = self.mime_type.as_ref().unwrap_or(&MimeType::Unknown),
+                content_length = content.len(),
+            )
+            .as_bytes()
+            .to_vec();
+            response.extend_from_slice(content);
+            response
+        } else {
+            format!("{} {}\r\n", HTTP_VERSION, self.status_code)
+                .as_bytes()
+                .to_vec()
         }
-        response
     }
 }
 
@@ -112,11 +122,9 @@ impl ResponseBuilder {
         let mut response = Response {
             status_code: self.status_code.unwrap_or(StatusCode::Ok),
             body: self.body,
-            content_length: None,
             mime_type: self.mime_type,
             encoding: self.encoding,
         };
-        // TODO: check for encoding, compress and set content length
         response.validate()?;
         Ok(response)
     }
