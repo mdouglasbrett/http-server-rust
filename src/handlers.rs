@@ -1,3 +1,5 @@
+use log::{debug, info};
+
 use crate::{
     errors::AppError,
     http::{ClientError, Headers, Method, MimeType, Request, Response, ServerError, StatusCode},
@@ -37,7 +39,9 @@ impl Handler for EchoHandler {
             .encoding(r.req.get_header(Headers::AcceptEncoding))
             .mime_type(MimeType::PlainText)
             .build()?;
-        r.stream.write_all(&resp.as_bytes())?;
+        debug!("Resp: {:?}", &resp);
+        debug!("Resp (as bytes): {:?}", &resp.as_bytes());
+        r.stream.write_all(&resp.as_bytes().to_vec())?;
         Ok(())
     }
 }
@@ -101,6 +105,7 @@ impl Handler for NotFoundHandler {
 
 impl ErrorHandler {
     pub fn handle(a: (&mut TcpStream, AppError)) -> Result<()> {
+        info!("In error handler");
         match a.1 {
             AppError::Client(ClientError::BadRequest) => {
                 let resp = Response::client_error()?;
