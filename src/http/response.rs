@@ -62,7 +62,7 @@ impl Response {
         let content = self.body.as_ref().unwrap_or(&empty);
         if !content.is_empty() {
             let mut response = format!(
-                "{} {}\r\n{}: {content_type}\r\n{}: {content_length}",
+                "{} {}\r\n{}: {content_type}\r\n{}: {content_length}\r\n\r\n",
                 HTTP_VERSION,
                 self.status_code,
                 Headers::ContentType,

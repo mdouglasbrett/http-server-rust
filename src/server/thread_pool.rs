@@ -53,6 +53,7 @@ impl Drop for ThreadPool {
                 }
             }
         }
+        info!("ThreadPool dropped");
     }
 }
 

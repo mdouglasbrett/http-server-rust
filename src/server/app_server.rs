@@ -42,11 +42,11 @@ impl Server {
 
         while self.running.load(Ordering::SeqCst) {
             match self.listener.accept() {
-                Ok((mut stream, addr)) => {
+                Ok((stream, addr)) => {
                     info!("Connection from: {}", addr);
                     let router = Arc::clone(&self.router);
                     self.thread_pool.execute(move || {
-                        if let Err(e) = router.route(&mut stream) {
+                        if let Err(e) = router.route(stream) {
                             error!("Error handling request, {}", e);
                         } else {
                             info!("Request handled OK");

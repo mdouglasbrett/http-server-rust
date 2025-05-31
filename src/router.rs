@@ -1,5 +1,4 @@
 use std::net::TcpStream;
-
 use crate::{handlers::*, http::Request, Result};
 
 #[derive(Debug, PartialEq, Eq, Hash)]
@@ -34,16 +33,19 @@ pub struct Router {
     dir: String,
 }
 
-impl Router {
+impl Router  {
     pub fn new(dir: String) -> Self {
         Router { dir }
     }
 
-    pub fn route(&self, stream: &mut TcpStream) -> Result<()> {
-        let req = Request::try_new(stream)?;
+    // TODO: <T> where T: Write ? Help with testing, and I'm already using
+    // it in the handlers
+    pub fn route(&self, stream: TcpStream) -> Result<()> {
+        let mut s = stream;
+        let req = Request::try_new(&s)?;
         let arg = HandlerArg {
             req: &req,
-            stream,
+            stream: &mut s,
             target_dir: &self.dir,
         };
         if let Err(e) = match req.route {
@@ -53,9 +55,12 @@ impl Router {
             Route::Empty => EmptyHandler::handle(arg),
             Route::Unknown => NotFoundHandler::handle(arg),
         } {
-            ErrorHandler::handle((stream, e))
+            ErrorHandler::handle((&mut s, e))
         } else {
             Ok(())
         }
     }
 }
+
+
+// TODO: tests

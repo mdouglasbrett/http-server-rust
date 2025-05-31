@@ -8,14 +8,13 @@ use crate::{
 use std::{
     fs::{read, write},
     io::Write,
-    net::TcpStream,
     path::Path,
 };
 
 #[derive(Debug)]
-pub struct HandlerArg<'a> {
+pub struct HandlerArg<'a, T: Write> {
     pub req: &'a Request,
-    pub stream: &'a mut TcpStream,
+    pub stream: &'a mut T,
     // TODO: might get away with a &'a str here
     pub target_dir: &'a String,
 }
@@ -28,25 +27,23 @@ pub struct NotFoundHandler;
 pub struct ErrorHandler;
 
 pub trait Handler {
-    fn handle(r: HandlerArg) -> Result<()>;
+    fn handle<T>(r: HandlerArg<T>) -> Result<()> where T: Write;
 }
 
 impl Handler for EchoHandler {
-    fn handle(r: HandlerArg) -> Result<()> {
+    fn handle<T: Write>(r: HandlerArg<T>) -> Result<()> {
         let body = r.req.body.as_slice();
         let resp = Response::builder()
             .body(Some(body.to_owned()))
             .encoding(r.req.get_header(Headers::AcceptEncoding))
             .mime_type(MimeType::PlainText)
             .build()?;
-        debug!("Resp: {:?}", &resp);
-        debug!("Resp (as bytes): {:?}", &resp.as_bytes());
-        r.stream.write_all(&resp.as_bytes().to_vec())?;
+        r.stream.write_all(&resp.as_bytes())?;
         Ok(())
     }
 }
 impl Handler for EmptyHandler {
-    fn handle(r: HandlerArg) -> Result<()> {
+    fn handle<T: Write>(r: HandlerArg<T>) -> Result<()> {
         let resp = Response::ok()?;
         r.stream.write_all(&resp.as_bytes())?;
         Ok(())
@@ -55,7 +52,7 @@ impl Handler for EmptyHandler {
 // TODO: this has side effects, how do we do this well?
 // TODO: use temp dir, manage it via cargo env?
 impl Handler for FileHandler {
-    fn handle(r: HandlerArg) -> Result<()> {
+    fn handle<T: Write>(r: HandlerArg<T>) -> Result<()> {
         let filename = &r.req.path_parts[1];
         let path = Path::new(r.target_dir).join(filename);
         if r.req.method == Method::Get {
@@ -80,7 +77,7 @@ impl Handler for FileHandler {
 }
 
 impl Handler for UserAgentHandler {
-    fn handle(r: HandlerArg) -> Result<()> {
+    fn handle<T: Write>(r: HandlerArg<T>) -> Result<()> {
         let b = r
             .req
             .get_header(Headers::UserAgent)
@@ -96,7 +93,7 @@ impl Handler for UserAgentHandler {
 }
 
 impl Handler for NotFoundHandler {
-    fn handle(r: HandlerArg) -> Result<()> {
+    fn handle<T: Write>(r: HandlerArg<T>) -> Result<()> {
         let resp = Response::not_found()?;
         r.stream.write_all(&resp.as_bytes())?;
         Ok(())
@@ -104,7 +101,7 @@ impl Handler for NotFoundHandler {
 }
 
 impl ErrorHandler {
-    pub fn handle(a: (&mut TcpStream, AppError)) -> Result<()> {
+    pub fn handle<T: Write>(a: (&mut T, AppError)) -> Result<()> {
         info!("In error handler");
         match a.1 {
             AppError::Client(ClientError::BadRequest) => {
