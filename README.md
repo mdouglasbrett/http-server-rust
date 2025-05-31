@@ -1,6 +1,9 @@
-# Codecrafters HTTP Server in Rust
+# HTTP Server in Rust
 
 This project is an HTTP server written in Rust, created as part of the Codecrafters "Build your own HTTP server" challenge. The server supports basic HTTP functionalities such as handling GET and POST requests, serving static files, and echoing request bodies.
+
+> [!CAUTION]
+> This project is for my personal learning purposes. You really shouldn't even _think_ that this is worth using anywhere.
 
 ## Features
 
@@ -14,17 +17,15 @@ This project is an HTTP server written in Rust, created as part of the Codecraft
 ## Project Structure
 
 - `src/config.rs`: Configuration handling for the server.
-- `src/constants.rs`: Constants used throughout the server.
 - `src/errors.rs`: Custom error types for the server.
 - `src/handlers.rs`: Request handlers for different routes.
+- `src/http/mod.rs`: HTTP types and re-exports.
 - `src/http/request.rs`: HTTP request parsing.
 - `src/http/response.rs`: HTTP response generation.
 - `src/main.rs`: Entry point of the application.
 - `src/router.rs`: Request routing logic.
-- `src/routes.rs`: Route definitions.
-- `src/server.rs`: Server setup and connection handling.
-- `src/thread_pool.rs`: Thread pool implementation for handling concurrent connections.
-- `src/utils.rs`: Utility functions.
+- `src/server/app_server.rs`: Server setup and connection handling.
+- `src/server/thread_pool.rs`: Thread pool implementation for handling concurrent connections.
 
 ## Getting Started
 
@@ -64,8 +65,11 @@ Example:
 ```sh
 cargo run -- --target_dir=/path/to/dir --address=127.0.0.1:8080
 ```
-
+<!--
 ### Testing
+
+> [!WARNING]
+> Tests are currently being rewritten, this project does not use TDD
 
 The project includes unit tests for various components. To run the tests, use the following command:
 
@@ -74,6 +78,7 @@ cargo test
 ```
 
 This will execute all the tests and display the results.
+-->
 
 ## Usage
 
@@ -111,15 +116,15 @@ This will execute all the tests and display the results.
     curl -X POST -d "File content" http://127.0.0.1:4221/files/test.txt
     ```
 
-
+<!--
 TODO:
 
 - [ ] handle subdir creation issue and add tests
-- [ ] add more test coverage
+- [ ] add more test coverage/fix existing tests
 - [ ] flesh out error handling further
 - [ ] add documentation
-- [ ] add graceful shutdown
 - [ ] add logging
-- [ ] possibly revisit module structure
 - [ ] add benchmarks
 - [ ] fork and refactor to use async/await
+- [ ] clean up all the TODOs!
+-->
