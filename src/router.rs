@@ -1,5 +1,5 @@
-use std::net::TcpStream;
 use crate::{handlers::*, http::Request, Result};
+use std::net::TcpStream;
 
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub enum Route {
@@ -33,7 +33,7 @@ pub struct Router {
     dir: String,
 }
 
-impl Router  {
+impl Router {
     pub fn new(dir: String) -> Self {
         Router { dir }
     }
@@ -61,6 +61,5 @@ impl Router  {
         }
     }
 }
-
 
 // TODO: tests

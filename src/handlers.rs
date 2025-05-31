@@ -1,5 +1,3 @@
-use log::{debug, info};
-
 use crate::{
     errors::AppError,
     http::{ClientError, Headers, Method, MimeType, Request, Response, ServerError, StatusCode},
@@ -27,7 +25,9 @@ pub struct NotFoundHandler;
 pub struct ErrorHandler;
 
 pub trait Handler {
-    fn handle<T>(r: HandlerArg<T>) -> Result<()> where T: Write;
+    fn handle<T>(r: HandlerArg<T>) -> Result<()>
+    where
+        T: Write;
 }
 
 impl Handler for EchoHandler {
@@ -102,7 +102,6 @@ impl Handler for NotFoundHandler {
 
 impl ErrorHandler {
     pub fn handle<T: Write>(a: (&mut T, AppError)) -> Result<()> {
-        info!("In error handler");
         match a.1 {
             AppError::Client(ClientError::BadRequest) => {
                 let resp = Response::client_error()?;

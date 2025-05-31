@@ -66,7 +66,6 @@ impl Display for StatusCode {
     }
 }
 
-
 // TODO: I can't just use an .into() on these, because of the _ in the from.
 // I would have to implement TryFrom and then account for the Error. I am on the fence about
 // this...
@@ -110,14 +109,14 @@ impl From<&String> for Headers {
 // TODO: I don't think this is great...
 impl Display for Headers {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-       match self {
-           Self::UserAgent => write!(f, "User-Agent"),
-           Self::ContentLength => write!(f, "Content-Length"),
-           Self::ContentEncoding => write!(f, "Content-Encoding"),
-           Self::AcceptEncoding => write!(f, "Accept-Encoding"),
-           Self::ContentType => write!(f, "Content-Type"),
-           Self::Unknown => write!(f, "")
-       } 
+        match self {
+            Self::UserAgent => write!(f, "User-Agent"),
+            Self::ContentLength => write!(f, "Content-Length"),
+            Self::ContentEncoding => write!(f, "Content-Encoding"),
+            Self::AcceptEncoding => write!(f, "Accept-Encoding"),
+            Self::ContentType => write!(f, "Content-Type"),
+            Self::Unknown => write!(f, ""),
+        }
     }
 }
 
@@ -147,4 +146,3 @@ impl Display for MimeType {
         }
     }
 }
-

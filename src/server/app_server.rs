@@ -59,7 +59,7 @@ impl Server {
                     std::thread::sleep(Duration::from_millis(100));
                     continue;
                 }
-                // If there is an error accepting a connection, we'll just 
+                // If there is an error accepting a connection, we'll just
                 // print it and continue
                 Err(e) => {
                     error!("Connection error: {:?}", e);
@@ -69,7 +69,7 @@ impl Server {
         }
 
         info!("Shutting down server...");
-        // Clippy tells me that the explicit drop() call on a reference does 
+        // Clippy tells me that the explicit drop() call on a reference does
         // nothing, so we will see how this changes behaviour on the thread pool.
         // TODO: may have to move the logs into the drop implmentation, let's see
         let _ = &self.thread_pool;

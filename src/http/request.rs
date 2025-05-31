@@ -1,6 +1,7 @@
 use std::{
     collections::HashMap,
-    io::{BufRead, BufReader, Read}, net::TcpStream
+    io::{BufRead, BufReader, Read},
+    net::TcpStream,
 };
 
 use crate::{errors::ClientError, router::Route, Result};
@@ -22,11 +23,11 @@ pub struct Request {
     pub path: String,
     pub headers: HashMap<Headers, String>,
     pub body: Vec<u8>,
-    pub path_parts: Vec<String>
+    pub path_parts: Vec<String>,
 }
 
 // TODO: RequestBuilder
-// TODO: this should be implmented as TryFrom 
+// TODO: this should be implmented as TryFrom
 impl Request {
     pub fn try_new(value: &TcpStream) -> Result<Self> {
         let mut buf = BufReader::new(value);
@@ -76,7 +77,9 @@ impl Request {
             headers
                 .entry(key)
                 // in-place mutation
-                .and_modify(|val| { *val = format!("{},{}", val, concat_parts); })
+                .and_modify(|val| {
+                    *val = format!("{},{}", val, concat_parts);
+                })
                 .or_insert(concat_parts.to_owned());
         }
 
@@ -98,7 +101,7 @@ impl Request {
             method,
             headers,
             body: body_buf,
-            path_parts
+            path_parts,
         })
     }
     pub fn get_header(&self, header: Headers) -> Option<&String> {
