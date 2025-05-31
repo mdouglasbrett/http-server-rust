@@ -106,7 +106,11 @@ impl ErrorHandler {
             AppError::Client(ClientError::BadRequest) => {
                 let resp = Response::client_error()?;
                 a.0.write_all(&resp.as_bytes())?;
-            }
+            },
+            AppError::Client(ClientError::NotFound) => {
+                let resp = Response::not_found()?;
+                a.0.write_all(&resp.as_bytes())?;
+            },
             AppError::Server(ServerError::NotImplemented) => {
                 let resp = Response::builder()
                     .status_code(crate::http::StatusCode::NotImplemented)
