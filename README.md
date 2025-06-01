@@ -36,11 +36,11 @@ This project is an HTTP server written in Rust, created as part of the Codecraft
 
 ### Installation
 
-1. Clone the repository:
+1. Fork and clone the repository:
 
     ```sh
-    git clone https://github.com/yourusername/codecrafters-http-server-rust.git
-    cd codecrafters-http-server-rust
+    git clone https://github.com/yourusername/http-server-rust.git
+    cd http-server-rust
     ```
 
 2. Build the project:
