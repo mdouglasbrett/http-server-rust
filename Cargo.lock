@@ -85,17 +85,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "613afe47fcd5fac7ccf1db93babcb082c5994d996f20b8b159f2ad1658eb5724"
 
 [[package]]
-name = "codecrafters-http-server"
-version = "0.2.0"
-dependencies = [
- "ctrlc",
- "env_logger",
- "flate2",
- "lexopt",
- "log",
-]
-
-[[package]]
 name = "colorchoice"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -151,6 +140,17 @@ checksum = "a1b589b4dc103969ad3cf85c950899926ec64300a1a46d76c03a6072957036f0"
 dependencies = [
  "crc32fast",
  "miniz_oxide",
+]
+
+[[package]]
+name = "http-server-rust"
+version = "0.3.0"
+dependencies = [
+ "ctrlc",
+ "env_logger",
+ "flate2",
+ "lexopt",
+ "log",
 ]
 
 [[package]]

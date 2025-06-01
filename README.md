@@ -63,7 +63,7 @@ cargo run -- [-t | --target_dir=TARGET_DIR] [-a | --address=ADDRESS]
 Example:
 
 ```sh
-cargo run -- --target_dir=/path/to/dir --address=127.0.0.1:8080
+cargo run -- --target_dir=path/to/dir --address=127.0.0.1:8080
 ```
 <!--
 ### Testing

@@ -1,6 +1,6 @@
 [package]
-name = "codecrafters-http-server"
-version = "0.2.0"
+name = "http-server-rust"
+version = "0.3.0"
 authors = [
     "Codecrafters <hello@codecrafters.io>, Michael Brett <mdouglasbrett@icloud.com>",
 ]
