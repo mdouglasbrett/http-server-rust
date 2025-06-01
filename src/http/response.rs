@@ -56,7 +56,6 @@ impl Response {
             .status_code(StatusCode::ServerError)
             .build()
     }
-    // TODO: guard against calling this before build with type state?
     pub fn as_bytes(&self) -> Vec<u8> {
         let empty: Vec<u8> = Vec::new();
         let content = self.body.as_ref().unwrap_or(&empty);
