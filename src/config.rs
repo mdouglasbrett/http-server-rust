@@ -2,7 +2,7 @@ use crate::Result;
 use lexopt::prelude::*;
 use std::path::Path;
 
-const TARGET_DIR: &str = "/tmp/";
+const TARGET_DIR: &str = "/tmp";
 const ADDRESS: &str = "127.0.0.1:4221";
 
 pub const HTTP_VERSION: &str = "HTTP/1.1";

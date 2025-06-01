@@ -1,5 +1,3 @@
-use log::debug;
-
 use crate::{
     errors::AppError,
     http::{ClientError, Headers, Method, MimeType, Request, Response, ServerError, StatusCode},
