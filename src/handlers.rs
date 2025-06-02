@@ -1,5 +1,6 @@
 use crate::{
     errors::AppError,
+    file::{File, FileHandler as FH},
     http::{ClientError, Headers, Method, MimeType, Request, Response, ServerError, StatusCode},
     Result,
 };
@@ -67,6 +68,7 @@ impl Handler for FileHandler {
     {
         let filename = &r.req.path_parts[1];
         let path = Path::new(r.target_dir).join(filename);
+        let _ = File::try_read(&path);
         if r.req.method == Method::Get {
             if let Ok(body) = read(path) {
                 let resp = Response::builder()
