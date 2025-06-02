@@ -8,12 +8,12 @@ use crate::Result;
 #[derive(Debug)]
 pub struct File;
 
-pub trait FileHandler {
+pub trait FileAccess {
     fn try_read(&self, p: &Path) -> Result<Vec<u8>>;
     fn try_write(&self, p: &Path, d: &[u8]) -> Result<()>;
 }
 
-impl FileHandler for File {
+impl FileAccess for File {
     fn try_read(&self, p: &Path) -> Result<Vec<u8>> {
         let d = read(p)?;
         Ok(d)

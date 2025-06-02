@@ -1,7 +1,6 @@
 use crate::{
     errors::AppError,
-    // TODO: rename this trait
-    file::FileHandler as FH,
+    file::FileAccess,
     http::{ClientError, Headers, Method, MimeType, Request, Response, ServerError, StatusCode},
     Result,
 };
@@ -11,7 +10,7 @@ use std::{io::Write, path::Path};
 pub struct HandlerArg<'a, T, U>
 where
     T: Write,
-    U: FH,
+    U: FileAccess,
 {
     pub req: &'a Request,
     pub stream: &'a mut T,
@@ -31,14 +30,14 @@ pub trait Handler {
     fn handle<T, U>(r: HandlerArg<T, U>) -> Result<()>
     where
         T: Write,
-        U: FH;
+        U: FileAccess;
 }
 
 impl Handler for EchoHandler {
     fn handle<T, U>(r: HandlerArg<T, U>) -> Result<()>
     where
         T: Write,
-        U: FH,
+        U: FileAccess,
     {
         let body = r.req.body.as_slice();
         let resp = Response::builder()
@@ -54,7 +53,7 @@ impl Handler for EmptyHandler {
     fn handle<T, U>(r: HandlerArg<T, U>) -> Result<()>
     where
         T: Write,
-        U: FH,
+        U: FileAccess,
     {
         let resp = Response::ok()?;
         r.stream.write_all(&resp.as_bytes())?;
@@ -66,7 +65,7 @@ impl Handler for FileHandler {
     fn handle<T, U>(r: HandlerArg<T, U>) -> Result<()>
     where
         T: Write,
-        U: FH,
+        U: FileAccess,
     {
         let filename = &r.req.path_parts[1];
         let path = Path::new(r.target_dir).join(filename);
@@ -103,7 +102,7 @@ impl Handler for UserAgentHandler {
     fn handle<T, U>(r: HandlerArg<T, U>) -> Result<()>
     where
         T: Write,
-        U: FH,
+        U: FileAccess,
     {
         let b = r
             .req
@@ -123,7 +122,7 @@ impl Handler for NotFoundHandler {
     fn handle<T, U>(r: HandlerArg<T, U>) -> Result<()>
     where
         T: Write,
-        U: FH,
+        U: FileAccess,
     {
         let resp = Response::not_found()?;
         r.stream.write_all(&resp.as_bytes())?;
