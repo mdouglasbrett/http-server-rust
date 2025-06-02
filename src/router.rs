@@ -1,4 +1,4 @@
-use crate::{handlers::*, http::Request, Result};
+use crate::{file::File, handlers::*, http::Request, Result};
 use std::io::{Read, Write};
 
 #[derive(Debug, PartialEq, Eq, Hash)]
@@ -44,14 +44,19 @@ impl Router {
     {
         let mut s = stream;
         let req = Request::try_new(s)?;
-        let arg = HandlerArg {
+        let mut arg: HandlerArg<'_, &T, File> = HandlerArg {
             req: &req,
             stream: &mut s,
             target_dir: &self.dir,
+            file: None,
         };
         if let Err(e) = match req.route {
             Route::Echo => EchoHandler::handle(arg),
-            Route::Files => FileHandler::handle(arg),
+            Route::Files => {
+                let file = File;
+                arg.file = Some(file);
+                FileHandler::handle(arg)
+            }
             Route::UserAgent => UserAgentHandler::handle(arg),
             Route::Empty => EmptyHandler::handle(arg),
             Route::Unknown => NotFoundHandler::handle(arg),
@@ -62,5 +67,3 @@ impl Router {
         }
     }
 }
-
-// TODO: tests

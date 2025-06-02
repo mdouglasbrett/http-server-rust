@@ -1,4 +1,7 @@
-use std::path::Path;
+use std::{
+    fs::{read, write},
+    path::Path,
+};
 
 use crate::Result;
 
@@ -6,15 +9,17 @@ use crate::Result;
 pub struct File;
 
 pub trait FileHandler {
-    fn try_read(p: &Path) -> Result<()>;
-    fn try_write(p: &Path) -> Result<()>;
+    fn try_read(&self, p: &Path) -> Result<Vec<u8>>;
+    fn try_write(&self, p: &Path, d: &[u8]) -> Result<()>;
 }
 
 impl FileHandler for File {
-    fn try_read(p: &Path) -> Result<()> {
-        todo!();
+    fn try_read(&self, p: &Path) -> Result<Vec<u8>> {
+        let d = read(p)?;
+        Ok(d)
     }
-    fn try_write(p: &Path) -> Result<()> {
-        todo!();
+    fn try_write(&self, p: &Path, d: &[u8]) -> Result<()> {
+        write(p, d)?;
+        Ok(())
     }
 }
