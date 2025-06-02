@@ -1,6 +1,6 @@
 use crate::Result;
 use lexopt::prelude::*;
-use std::path::Path;
+use std::{fs::create_dir, path::Path};
 
 const TARGET_DIR: &str = "/tmp";
 const ADDRESS: &str = "127.0.0.1:4221";
@@ -31,11 +31,11 @@ impl Config {
                             let raw_dir = parsed_val;
                             let dir_string = format!("{}{}", TARGET_DIR, &raw_dir);
                             let dir_path = Path::new(&dir_string);
-                            if !check_directory_exists(&dir_path) {
+                            if !check_directory_exists(dir_path) {
                                 // TODO: how do we abstract over the file system to make this
                                 // testable
                                 // Do we even really do that in Rust?
-                                if let Err(e) = std::fs::create_dir(&dir_path) {
+                                if let Err(e) = create_dir(dir_path) {
                                     return Err(e.into());
                                 }
                             }
