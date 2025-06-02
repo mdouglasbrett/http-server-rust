@@ -38,8 +38,6 @@ impl Router {
         Router { dir }
     }
 
-    // TODO: <T> where T: Write ? Help with testing, and I'm already using
-    // it in the handlers
     pub fn route<'a, T>(&self, stream: &'a T) -> Result<()>
     where
         &'a T: Write + Read,
