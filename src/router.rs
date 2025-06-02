@@ -1,5 +1,5 @@
 use crate::{handlers::*, http::Request, Result};
-use std::net::TcpStream;
+use std::io::{Read, Write};
 
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub enum Route {
@@ -40,9 +40,12 @@ impl Router {
 
     // TODO: <T> where T: Write ? Help with testing, and I'm already using
     // it in the handlers
-    pub fn route(&self, stream: TcpStream) -> Result<()> {
+    pub fn route<'a, T>(&self, stream: &'a T) -> Result<()>
+    where
+        &'a T: Write + Read,
+    {
         let mut s = stream;
-        let req = Request::try_new(&s)?;
+        let req = Request::try_new(s)?;
         let arg = HandlerArg {
             req: &req,
             stream: &mut s,

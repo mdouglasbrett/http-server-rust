@@ -1,7 +1,6 @@
 use std::{
     collections::HashMap,
     io::{BufRead, BufReader, Read},
-    net::TcpStream,
 };
 
 use crate::{errors::ClientError, router::Route, Result};
@@ -29,7 +28,10 @@ pub struct Request {
 // TODO: RequestBuilder
 // TODO: this should be implmented as TryFrom
 impl Request {
-    pub fn try_new(value: &TcpStream) -> Result<Self> {
+    pub fn try_new<T>(value: T) -> Result<Self>
+    where
+        T: Read,
+    {
         let mut buf = BufReader::new(value);
         let mut start_line = String::new();
         let _ = buf.read_line(&mut start_line)?;

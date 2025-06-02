@@ -46,7 +46,7 @@ impl Server {
                     info!("Connection from: {}", addr);
                     let router = Arc::clone(&self.router);
                     self.thread_pool.execute(move || {
-                        if let Err(e) = router.route(stream) {
+                        if let Err(e) = router.route(&stream) {
                             error!("Error handling request, {}", e);
                         } else {
                             info!("Request handled OK");
