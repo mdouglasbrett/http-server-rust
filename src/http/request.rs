@@ -3,7 +3,11 @@ use std::{
     io::{BufRead, BufReader, Read},
 };
 
-use crate::{errors::ClientError, router::Route, Result};
+use crate::{
+    errors::{AppError, ClientError},
+    router::Route,
+    Result,
+};
 
 use super::{Headers, Method};
 
@@ -25,14 +29,19 @@ pub struct Request {
     pub path_parts: Vec<String>,
 }
 
-// TODO: RequestBuilder
-// TODO: this should be implmented as TryFrom
 impl Request {
-    pub fn try_new<T>(value: T) -> Result<Self>
+    pub fn get_header(&self, header: Headers) -> Option<&String> {
+        let header_val = self.headers.get(&header);
+        header_val
+    }
+}
+
+impl<R: Read> TryFrom<&mut BufReader<R>> for Request {
+    type Error = AppError;
+    fn try_from(buf: &mut BufReader<R>) -> Result<Self>
     where
-        T: Read,
+        R: Read,
     {
-        let mut buf = BufReader::new(value);
         let mut start_line = String::new();
         let _ = buf.read_line(&mut start_line)?;
         let mut start_parts = start_line.split_whitespace();
@@ -106,11 +115,8 @@ impl Request {
             path_parts,
         })
     }
-    pub fn get_header(&self, header: Headers) -> Option<&String> {
-        let header_val = self.headers.get(&header);
-        header_val
-    }
 }
+
 
 //#[cfg(test)]
 //mod tests {
@@ -123,6 +129,8 @@ impl Request {
 //
 //        #[test]
 //        fn handles_http_request() {
+//            // TODO: this will have to be passed in as a buffer now
+//
 //            let req = b"GET /echo/abc HTTP/1.1\r\n\r\n";
 //            let expected = Request {
 //                method: Get,
