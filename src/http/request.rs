@@ -118,37 +118,40 @@ impl<R: Read> TryFrom<&mut BufReader<R>> for Request {
 }
 
 
-//#[cfg(test)]
-//mod tests {
-//
-//    mod request {
-//        use crate::errors::{AppError, ClientError};
-//        use crate::http::request::{Method::Get, Request};
-//        use crate::router::Route::Echo;
-//        use std::collections::HashMap;
-//
-//        #[test]
-//        fn handles_http_request() {
-//            // TODO: this will have to be passed in as a buffer now
-//
-//            let req = b"GET /echo/abc HTTP/1.1\r\n\r\n";
-//            let expected = Request {
-//                method: Get,
-//                route: Echo,
-//                path: "/echo/abc".to_owned(),
-//                body: b"abc".to_vec(),
-//                headers: HashMap::new(),
-//            };
-//            assert_eq!(expected, Request::try_new(&mut req.as_slice()).unwrap());
-//        }
-//
-//        #[test]
-//        fn handles_bad_request() {
-//            let req = b"/echo/abc\r\n\r\n";
-//            assert_eq!(
-//                AppError::Client(ClientError::BadRequest),
-//                Request::try_new(&mut req.as_slice()).unwrap_err()
-//            );
-//        }
-//    }
-//}
+#[cfg(test)]
+mod tests {
+
+    mod request {
+        use crate::errors::{AppError, ClientError};
+        use crate::http::request::{Method::Get, Request};
+        use crate::router::Route::Echo;
+        use std::{collections::HashMap, io::BufReader};
+
+        #[test]
+        fn handles_http_request() {
+            let req = b"GET /echo/abc HTTP/1.1\r\n\r\n";
+            let mut req_slice = req.as_slice();
+            let mut req_buf = BufReader::new(&mut req_slice);
+            let expected = Request {
+                method: Get,
+                route: Echo,
+                path: "/echo/abc".to_owned(),
+                path_parts: vec!("echo".to_owned(), "abc".to_owned()),
+                body: b"abc".to_vec(),
+                headers: HashMap::new(),
+            };
+            assert_eq!(expected, Request::try_from(&mut req_buf).unwrap());
+        }
+
+        #[test]
+        fn handles_bad_request() {
+            let req = b"/echo/abc\r\n\r\n";
+            let mut req_slice = req.as_slice();
+            let mut req_buf = BufReader::new(&mut req_slice);
+            assert_eq!(
+                AppError::Client(ClientError::BadRequest),
+                Request::try_from(&mut req_buf).unwrap_err()
+            );
+        }
+    }
+}
