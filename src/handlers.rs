@@ -14,10 +14,13 @@ where
 {
     pub req: &'a Request,
     pub stream: &'a mut T,
-    // TODO: might get away with a &'a str here
     pub target_dir: &'a String,
     pub file: Option<U>,
 }
+
+pub struct ErrorHandlerArg<'a, T>(pub &'a mut T, pub AppError)
+where
+    T: Write;
 
 pub struct EchoHandler;
 pub struct EmptyHandler;
@@ -131,8 +134,7 @@ impl Handler for NotFoundHandler {
 }
 
 impl ErrorHandler {
-    // TODO: make this arg a concrete type?
-    pub fn handle<T>(a: (&mut T, AppError)) -> Result<()>
+    pub fn handle<T>(a: ErrorHandlerArg<T>) -> Result<()>
     where
         T: Write,
     {
@@ -157,5 +159,33 @@ impl ErrorHandler {
             }
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+
+    mod handlers {
+
+        #[test]
+        fn handles_echo() {
+        }
+
+        #[test]
+        fn handles_user_agent() {
+        }
+
+        #[test]
+        fn handles_empty() {
+        }
+
+        #[test]
+        fn handles_read_file() {}
+
+        #[test]
+        fn handles_write_file() {}
+
+        #[test]
+        fn handles_error() {}
     }
 }

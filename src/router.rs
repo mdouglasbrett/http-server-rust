@@ -63,7 +63,7 @@ impl Router {
             Route::Empty => EmptyHandler::handle(arg),
             Route::Unknown => NotFoundHandler::handle(arg),
         } {
-            ErrorHandler::handle((&mut s, e))
+            ErrorHandler::handle(ErrorHandlerArg(&mut s, e))
         } else {
             Ok(())
         }
