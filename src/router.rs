@@ -1,5 +1,5 @@
 use crate::{file::File, handlers::*, http::Request, Result};
-use std::io::{Read, Write, BufReader};
+use std::io::{BufReader, Read, Write};
 
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub enum Route {
@@ -43,7 +43,7 @@ impl Router {
         &'a T: Write + Read,
     {
         let mut s = stream;
-        
+
         let mut request_buffer = BufReader::new(s);
         let req = Request::try_from(&mut request_buffer)?;
         let mut arg: HandlerArg<'_, &T, File> = HandlerArg {

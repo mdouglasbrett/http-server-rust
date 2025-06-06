@@ -117,7 +117,6 @@ impl<R: Read> TryFrom<&mut BufReader<R>> for Request {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
 
@@ -136,7 +135,7 @@ mod tests {
                 method: Get,
                 route: Echo,
                 path: "/echo/abc".to_owned(),
-                path_parts: vec!("echo".to_owned(), "abc".to_owned()),
+                path_parts: vec!["echo".to_owned(), "abc".to_owned()],
                 body: b"abc".to_vec(),
                 headers: HashMap::new(),
             };

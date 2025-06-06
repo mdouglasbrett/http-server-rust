@@ -168,16 +168,13 @@ mod tests {
     mod handlers {
 
         #[test]
-        fn handles_echo() {
-        }
+        fn handles_echo() {}
 
         #[test]
-        fn handles_user_agent() {
-        }
+        fn handles_user_agent() {}
 
         #[test]
-        fn handles_empty() {
-        }
+        fn handles_empty() {}
 
         #[test]
         fn handles_read_file() {}
