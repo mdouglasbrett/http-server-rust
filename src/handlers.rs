@@ -4,7 +4,10 @@ use crate::{
     http::{ClientError, Headers, Method, MimeType, Request, Response, ServerError, StatusCode},
     Result,
 };
-use std::{io::Write, path::Path};
+use std::{
+    io::Write,
+    path::{Path, PathBuf},
+};
 
 #[derive(Debug)]
 pub struct HandlerArg<'a, T, U>
@@ -14,7 +17,7 @@ where
 {
     pub req: &'a Request,
     pub stream: &'a mut T,
-    pub target_dir: &'a String,
+    pub target_dir: &'a PathBuf,
     pub file: Option<U>,
 }
 
@@ -76,6 +79,8 @@ impl Handler for FileHandler {
         if r.file.is_some() {
             match r.req.method {
                 Method::Get => {
+                    // As I am checking the file before the match, I don't this this unwrap is so
+                    // bad?
                     if let Ok(body) = r.file.unwrap().try_read(&path) {
                         let resp = Response::builder()
                             .status_code(StatusCode::Ok)
@@ -89,6 +94,7 @@ impl Handler for FileHandler {
                     }
                 }
                 Method::Post => {
+                    // See above
                     r.file.unwrap().try_write(&path, &r.req.body)?;
                     let resp = Response::created()?;
                     r.stream.write_all(&resp.as_bytes())?;

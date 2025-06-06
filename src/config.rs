@@ -1,6 +1,9 @@
 use crate::Result;
 use lexopt::prelude::*;
-use std::{fs::create_dir, path::Path};
+use std::{
+    fs::create_dir,
+    path::{Path, PathBuf},
+};
 
 const TARGET_DIR: &str = "/tmp";
 const ADDRESS: &str = "127.0.0.1:4221";
@@ -14,8 +17,7 @@ fn check_directory_exists(dir: &Path) -> bool {
 #[derive(Debug)]
 pub struct Config {
     pub address: String,
-    // TODO: this can be more specific than a string...
-    pub directory: String,
+    pub directory: PathBuf,
 }
 
 impl Config {
@@ -26,20 +28,16 @@ impl Config {
             match arg {
                 Short('t') | Long("target_dir") => {
                     if let Ok(val) = parser.value() {
-                        // TODO: should make this directory handling more robust
                         if let Ok(parsed_val) = val.parse::<String>() {
-                            let raw_dir = parsed_val;
-                            let dir_string = format!("{}{}", TARGET_DIR, &raw_dir);
-                            let dir_path = Path::new(&dir_string);
-                            if !check_directory_exists(dir_path) {
-                                // TODO: how do we abstract over the file system to make this
-                                // testable
-                                // Do we even really do that in Rust?
-                                if let Err(e) = create_dir(dir_path) {
+                            let dir_path =
+                                Path::new(&format!("{}{}", TARGET_DIR, parsed_val)).to_owned();
+                            if !check_directory_exists(&dir_path) {
+                                // TODO: Abstract this away like I did with File?
+                                if let Err(e) = create_dir(&dir_path) {
                                     return Err(e.into());
                                 }
                             }
-                            config.directory = dir_string;
+                            config.directory = dir_path;
                         }
                     }
                 }
@@ -67,7 +65,7 @@ impl Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            directory: TARGET_DIR.to_owned(),
+            directory: PathBuf::from(TARGET_DIR),
             address: ADDRESS.to_owned(),
         }
     }

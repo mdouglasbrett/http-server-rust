@@ -1,5 +1,8 @@
 use crate::{file::File, handlers::*, http::Request, Result};
-use std::io::{BufReader, Read, Write};
+use std::{
+    io::{BufReader, Read, Write},
+    path::PathBuf,
+};
 
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub enum Route {
@@ -30,11 +33,11 @@ impl From<&String> for Route {
 
 #[derive(Debug)]
 pub struct Router {
-    dir: String,
+    dir: PathBuf,
 }
 
 impl Router {
-    pub fn new(dir: String) -> Self {
+    pub fn new(dir: PathBuf) -> Self {
         Router { dir }
     }
 
@@ -44,8 +47,8 @@ impl Router {
     {
         let mut s = stream;
 
-        let mut request_buffer = BufReader::new(s);
-        let req = Request::try_from(&mut request_buffer)?;
+        let mut req_buffer = BufReader::new(s);
+        let req = Request::try_from(&mut req_buffer)?;
         let mut arg: HandlerArg<'_, &T, File> = HandlerArg {
             req: &req,
             stream: &mut s,
@@ -61,6 +64,8 @@ impl Router {
             }
             Route::UserAgent => UserAgentHandler::handle(arg),
             Route::Empty => EmptyHandler::handle(arg),
+            // TODO: _should_ this be represented as NotFound? If we do not know that route, should
+            // we not say? It's not exactly the same as a resource not being there...
             Route::Unknown => NotFoundHandler::handle(arg),
         } {
             ErrorHandler::handle(ErrorHandlerArg(&mut s, e))
