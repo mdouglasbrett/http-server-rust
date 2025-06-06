@@ -19,7 +19,7 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn new() -> Result<Config> {
+    pub fn try_new() -> Result<Config> {
         let mut parser = lexopt::Parser::from_env();
         let mut config = Config::default();
         while let Ok(Some(arg)) = parser.next() {

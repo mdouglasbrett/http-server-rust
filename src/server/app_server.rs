@@ -18,7 +18,7 @@ pub struct Server {
 }
 
 impl Server {
-    pub fn new(config: &Config) -> Result<Self> {
+    pub fn try_new(config: &Config) -> Result<Self> {
         let listener = TcpListener::bind(&config.address)?;
         listener.set_nonblocking(true)?;
         let router = Arc::new(Router::new(config.directory.clone()));
