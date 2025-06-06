@@ -18,6 +18,7 @@ where
     pub file: Option<U>,
 }
 
+#[derive(Debug)]
 pub struct ErrorHandlerArg<'a, T>(pub &'a mut T, pub AppError)
 where
     T: Write;
