@@ -1,14 +1,12 @@
-use crate::Result;
+use crate::{
+    constants::{ADDRESS, TARGET_DIR},
+    Result,
+};
 use lexopt::prelude::*;
 use std::{
     fs::create_dir,
     path::{Path, PathBuf},
 };
-
-const TARGET_DIR: &str = "/tmp";
-const ADDRESS: &str = "127.0.0.1:4221";
-
-pub const HTTP_VERSION: &str = "HTTP/1.1";
 
 fn check_directory_exists(dir: &Path) -> bool {
     dir.exists() && dir.is_dir()

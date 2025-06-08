@@ -5,6 +5,7 @@ use crate::{
     Result,
 };
 use std::{
+    default::Default,
     io::Write,
     path::{Path, PathBuf},
 };
@@ -13,7 +14,7 @@ use std::{
 pub struct HandlerArg<'a, T, U>
 where
     T: Write,
-    U: FileAccess,
+    U: FileAccess + Default,
 {
     pub req: &'a Request,
     pub stream: &'a mut T,
@@ -37,14 +38,14 @@ pub trait Handler {
     fn handle<T, U>(r: HandlerArg<T, U>) -> Result<()>
     where
         T: Write,
-        U: FileAccess;
+        U: FileAccess + Default;
 }
 
 impl Handler for EchoHandler {
     fn handle<T, U>(r: HandlerArg<T, U>) -> Result<()>
     where
         T: Write,
-        U: FileAccess,
+        U: FileAccess + Default,
     {
         let body = r.req.body.as_slice();
         let resp = Response::builder()
@@ -60,7 +61,7 @@ impl Handler for EmptyHandler {
     fn handle<T, U>(r: HandlerArg<T, U>) -> Result<()>
     where
         T: Write,
-        U: FileAccess,
+        U: FileAccess + Default,
     {
         let resp = Response::ok()?;
         r.stream.write_all(&resp.as_bytes())?;
@@ -72,37 +73,34 @@ impl Handler for FileHandler {
     fn handle<T, U>(r: HandlerArg<T, U>) -> Result<()>
     where
         T: Write,
-        U: FileAccess,
+        U: FileAccess + Default,
     {
         let filename = &r.req.path_parts[1];
         let path = Path::new(r.target_dir).join(filename);
-        if r.file.is_some() {
-            match r.req.method {
-                Method::Get => {
-                    // As I am checking the file before the match, I don't this this unwrap is so
-                    // bad?
-                    if let Ok(body) = r.file.unwrap().try_read(&path) {
-                        let resp = Response::builder()
-                            .status_code(StatusCode::Ok)
-                            .body(Some(body))
-                            .encoding(r.req.get_header(Headers::AcceptEncoding))
-                            .mime_type(MimeType::OctetStream)
-                            .build()?;
-                        r.stream.write_all(&resp.as_bytes())?;
-                    } else {
-                        return Err(ClientError::NotFound.into());
-                    }
-                }
-                Method::Post => {
-                    // See above
-                    r.file.unwrap().try_write(&path, &r.req.body)?;
-                    let resp = Response::created()?;
+        let file = r.file.unwrap_or_default();
+        match r.req.method {
+            Method::Get => {
+                // As I am checking the file before the match, I don't this this unwrap is so
+                // bad?
+                if let Ok(body) = file.try_read(&path) {
+                    let resp = Response::builder()
+                        .status_code(StatusCode::Ok)
+                        .body(Some(body))
+                        .encoding(r.req.get_header(Headers::AcceptEncoding))
+                        .mime_type(MimeType::OctetStream)
+                        .build()?;
                     r.stream.write_all(&resp.as_bytes())?;
+                } else {
+                    return Err(ClientError::NotFound.into());
                 }
-                _ => return Err(ServerError::Internal.into()),
             }
-        } else {
-            return Err(ServerError::Internal.into());
+            Method::Post => {
+                // See above
+                file.try_write(&path, &r.req.body)?;
+                let resp = Response::created()?;
+                r.stream.write_all(&resp.as_bytes())?;
+            }
+            _ => return Err(ServerError::Internal.into()),
         }
         Ok(())
     }
@@ -112,7 +110,7 @@ impl Handler for UserAgentHandler {
     fn handle<T, U>(r: HandlerArg<T, U>) -> Result<()>
     where
         T: Write,
-        U: FileAccess,
+        U: FileAccess + Default,
     {
         let b = r
             .req
@@ -132,7 +130,7 @@ impl Handler for NotFoundHandler {
     fn handle<T, U>(r: HandlerArg<T, U>) -> Result<()>
     where
         T: Write,
-        U: FileAccess,
+        U: FileAccess + Default,
     {
         let resp = Response::not_found()?;
         r.stream.write_all(&resp.as_bytes())?;

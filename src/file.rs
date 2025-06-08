@@ -5,8 +5,14 @@ use std::{
 
 use crate::Result;
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct File;
+
+impl File {
+    pub fn new() -> Self {
+        Self
+    }
+}
 
 pub trait FileAccess {
     fn try_read(&self, p: &Path) -> Result<Vec<u8>>;

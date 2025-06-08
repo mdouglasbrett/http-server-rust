@@ -6,9 +6,11 @@ mod http;
 mod router;
 mod server;
 
+pub(crate) mod constants {
+    pub const TARGET_DIR: &str = "/tmp";
+    pub const ADDRESS: &str = "127.0.0.1:4221";
+    pub const HTTP_VERSION: &str = "HTTP/1.1";
+}
+
 // Re-exports for main.rs
-pub use {
-    config::{Config, HTTP_VERSION},
-    errors::Result,
-    server::Server,
-};
+pub use {config::Config, constants::HTTP_VERSION, errors::Result, server::Server};

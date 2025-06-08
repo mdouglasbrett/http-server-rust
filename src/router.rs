@@ -58,8 +58,7 @@ impl Router {
         if let Err(e) = match req.route {
             Route::Echo => EchoHandler::handle(arg),
             Route::Files => {
-                let file = File;
-                arg.file = Some(file);
+                arg.file = Some(File::new());
                 FileHandler::handle(arg)
             }
             Route::UserAgent => UserAgentHandler::handle(arg),
