@@ -4,11 +4,7 @@ use crate::{
     http::{ClientError, Headers, Method, MimeType, Request, Response, ServerError, StatusCode},
     Result,
 };
-use std::{
-    default::Default,
-    io::Write,
-    path::{Path, PathBuf},
-};
+use std::{default::Default, io::Write};
 
 #[derive(Debug)]
 pub struct HandlerArg<'a, T, U>
@@ -18,14 +14,36 @@ where
 {
     pub req: &'a Request,
     pub stream: &'a mut T,
-    pub target_dir: &'a PathBuf,
     pub file: Option<U>,
 }
 
-#[derive(Debug)]
-pub struct ErrorHandlerArg<'a, T>(pub &'a mut T, pub AppError)
+impl<'a, T, U> HandlerArg<'a, T, U>
 where
-    T: Write;
+    T: Write,
+    U: FileAccess + Default,
+{
+    pub fn new(req: &'a Request, stream: &'a mut T, file: Option<U>) -> HandlerArg<'a, T, U> {
+        HandlerArg { req, stream, file }
+    }
+}
+
+#[derive(Debug)]
+pub struct ErrorHandlerArg<'a, T>
+where
+    T: Write,
+{
+    pub stream: &'a mut T,
+    pub err: AppError,
+}
+
+impl<'a, T> ErrorHandlerArg<'a, T>
+where
+    T: Write,
+{
+    pub fn new(stream: &'a mut T, err: AppError) -> ErrorHandlerArg<'a, T> {
+        ErrorHandlerArg { stream, err }
+    }
+}
 
 pub struct EchoHandler;
 pub struct EmptyHandler;
@@ -75,14 +93,11 @@ impl Handler for FileHandler {
         T: Write,
         U: FileAccess + Default,
     {
-        let filename = &r.req.path_parts[1];
-        let path = Path::new(r.target_dir).join(filename);
+        let src = &r.req.path_parts[1];
         let file = r.file.unwrap_or_default();
         match r.req.method {
             Method::Get => {
-                // As I am checking the file before the match, I don't this this unwrap is so
-                // bad?
-                if let Ok(body) = file.try_read(&path) {
+                if let Ok(body) = file.try_read(src) {
                     let resp = Response::builder()
                         .status_code(StatusCode::Ok)
                         .body(Some(body))
@@ -95,8 +110,7 @@ impl Handler for FileHandler {
                 }
             }
             Method::Post => {
-                // See above
-                file.try_write(&path, &r.req.body)?;
+                file.try_write(src, &r.req.body)?;
                 let resp = Response::created()?;
                 r.stream.write_all(&resp.as_bytes())?;
             }
@@ -143,24 +157,24 @@ impl ErrorHandler {
     where
         T: Write,
     {
-        match a.1 {
+        match a.err {
             AppError::Client(ClientError::BadRequest) => {
                 let resp = Response::client_error()?;
-                a.0.write_all(&resp.as_bytes())?;
+                a.stream.write_all(&resp.as_bytes())?;
             }
             AppError::Client(ClientError::NotFound) => {
                 let resp = Response::not_found()?;
-                a.0.write_all(&resp.as_bytes())?;
+                a.stream.write_all(&resp.as_bytes())?;
             }
             AppError::Server(ServerError::NotImplemented) => {
                 let resp = Response::builder()
                     .status_code(crate::http::StatusCode::NotImplemented)
                     .build()?;
-                a.0.write_all(&resp.as_bytes())?;
+                a.stream.write_all(&resp.as_bytes())?;
             }
             _ => {
                 let resp = Response::server_error()?;
-                a.0.write_all(&resp.as_bytes())?;
+                a.stream.write_all(&resp.as_bytes())?;
             }
         }
         Ok(())

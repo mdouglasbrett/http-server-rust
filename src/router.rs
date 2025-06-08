@@ -1,4 +1,9 @@
-use crate::{file::File, handlers::*, http::Request, Result};
+use crate::{
+    file::File,
+    handlers::*,
+    http::{ClientError, Request},
+    Result,
+};
 use std::{
     io::{BufReader, Read, Write},
     path::PathBuf,
@@ -49,25 +54,22 @@ impl Router {
 
         let mut req_buffer = BufReader::new(s);
         let req = Request::try_from(&mut req_buffer)?;
-        let mut arg: HandlerArg<'_, &T, File> = HandlerArg {
-            req: &req,
-            stream: &mut s,
-            target_dir: &self.dir,
-            file: None,
-        };
+        let mut arg: HandlerArg<'_, &T, File> = HandlerArg::new(&req, &mut s, None);
+        // TODO: should I discriminate on Method straight away?
+        // Is this just a massive oversight? LOL
         if let Err(e) = match req.route {
             Route::Echo => EchoHandler::handle(arg),
             Route::Files => {
-                arg.file = Some(File::new());
+                arg.file = Some(File::new(self.dir.to_owned()));
                 FileHandler::handle(arg)
             }
             Route::UserAgent => UserAgentHandler::handle(arg),
             Route::Empty => EmptyHandler::handle(arg),
-            // TODO: _should_ this be represented as NotFound? If we do not know that route, should
-            // we not say? It's not exactly the same as a resource not being there...
-            Route::Unknown => NotFoundHandler::handle(arg),
+            Route::Unknown => {
+                ErrorHandler::handle(ErrorHandlerArg::new(&mut s, ClientError::BadRequest.into()))
+            }
         } {
-            ErrorHandler::handle(ErrorHandlerArg(&mut s, e))
+            ErrorHandler::handle(ErrorHandlerArg::new(&mut s, e))
         } else {
             Ok(())
         }
