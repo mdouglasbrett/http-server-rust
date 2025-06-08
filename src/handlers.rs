@@ -1,3 +1,5 @@
+// TODO: there is a lot of boilerplate here, is that a code smell? Or is it
+// an opportunity to hide some of this behind a macro?
 use crate::{
     errors::AppError,
     file::FileAccess,
@@ -75,6 +77,7 @@ impl Handler for EchoHandler {
         Ok(())
     }
 }
+
 impl Handler for EmptyHandler {
     fn handle<T, U>(r: HandlerArg<T, U>) -> Result<()>
     where

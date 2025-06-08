@@ -13,4 +13,4 @@ pub(crate) mod constants {
 }
 
 // Re-exports for main.rs
-pub use {config::Config, constants::HTTP_VERSION, errors::Result, server::Server};
+pub use {config::Config, errors::Result, server::Server};

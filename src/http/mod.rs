@@ -66,11 +66,11 @@ impl Display for StatusCode {
     }
 }
 
-// TODO: I can't just use an .into() on these, because of the _ in the from.
+
+// I can't just use an .into() on these, because of the _ in the from.
 // I would have to implement TryFrom and then account for the Error. I am on the fence about
 // this...
-// TODO: implement TryFrom
-
+// TODO: implement TryFrom?
 #[derive(Debug, Hash, PartialEq, Eq)]
 pub enum Headers {
     UserAgent,
