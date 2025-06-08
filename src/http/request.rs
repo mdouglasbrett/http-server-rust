@@ -45,16 +45,7 @@ impl<R: Read> TryFrom<&mut BufReader<R>> for Request {
         let mut start_line = String::new();
         let _ = buf.read_line(&mut start_line)?;
         let mut start_parts = start_line.split_whitespace();
-        let method = match Method::from(start_parts.next()) {
-            Method::Unsupported(err) => {
-                return Err(err.into());
-            }
-            Method::Unknown(err) => {
-                return Err(err.into());
-            }
-            Method::Get => Method::Get,
-            Method::Post => Method::Post,
-        };
+        let method = Method::from(start_parts.next());
         let path = match start_parts.next() {
             Some(s) => s.to_owned(),
             None => {

@@ -11,8 +11,8 @@ pub use response::Response;
 pub enum Method {
     Get,
     Post,
-    Unknown(ClientError),
-    Unsupported(ServerError),
+    Unknown,
+    Unsupported,
 }
 
 impl From<Option<&str>> for Method {
@@ -22,8 +22,8 @@ impl From<Option<&str>> for Method {
             Some("POST") => Self::Post,
             // Maybe tomorrow...
             Some("PUT") | Some("PATCH") | Some("OPTIONS") | Some("HEAD") | Some("DELETE")
-            | Some("CONNECT") | Some("TRACE") => Self::Unsupported(ServerError::NotImplemented),
-            _ => Self::Unknown(ClientError::BadRequest),
+            | Some("CONNECT") | Some("TRACE") => Self::Unsupported,
+            _ => Self::Unknown,
         }
     }
 }
