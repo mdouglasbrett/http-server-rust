@@ -55,7 +55,7 @@ impl<R: Read> TryFrom<&mut BufReader<R>> for Request {
         let path_parts = get_path_parts(path.as_str());
 
         let route = if path_parts.is_empty() {
-            Route::from("/")
+            Route::Empty
         } else {
             Route::from(&path_parts[0])
         };
