@@ -5,6 +5,7 @@ mod handlers;
 mod http;
 mod router;
 mod server;
+mod traits;
 
 pub(crate) mod constants {
     pub const TARGET_DIR: &str = "/tmp";

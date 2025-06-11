@@ -1,12 +1,50 @@
 use crate::{
     constants::{ADDRESS, TARGET_DIR},
+    traits::FileSystemAccess,
     Result,
 };
 use lexopt::prelude::*;
 use std::{
-    fs::create_dir,
+    fs::{create_dir, read, write},
     path::{Path, PathBuf},
 };
+
+#[derive(Debug, Clone)]
+pub struct Dir {
+    path: PathBuf,
+}
+
+impl Dir {
+    pub fn new(p: &str) -> Self {
+        Self {
+            path: PathBuf::from(p)
+        }
+    } 
+}
+
+impl Default for Dir {
+    fn default() -> Self {
+        Self::new(TARGET_DIR)
+    }
+}
+
+impl FileSystemAccess for Dir {
+    fn check_dir_exists(&self) -> bool {
+        self.path.exists() && self.path.is_dir()
+    }
+    fn try_read(&self, src: &str) -> Result<Vec<u8>> {
+        let d = read(self.path.join(src))?;
+        Ok(d)
+    }
+    fn try_write(&self, src: &str, d: &[u8]) -> Result<()> {
+        write(self.path.join(src), d)?;
+        Ok(())
+    }
+    fn try_create(&self) -> Result<()> {
+       create_dir(&self.path)?;
+       Ok(())
+    }
+}
 
 fn check_directory_exists(dir: &Path) -> bool {
     dir.exists() && dir.is_dir()
