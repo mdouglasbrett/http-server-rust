@@ -119,12 +119,9 @@ This will execute all the tests and display the results.
 <!--
 TODO:
 
-- [ ] handle subdir creation issue and add tests
 - [ ] add more test coverage/fix existing tests
-- [ ] flesh out error handling further
 - [ ] add documentation
-- [ ] add logging
-- [ ] add benchmarks
-- [ ] fork and refactor to use async/await
+- [ ] add benchmarks? what would the benchmarks prove? this is a toy
+- [ ] fork and refactor to use async/await - is that a TODO for _this_ project?
 - [ ] clean up all the TODOs!
 -->

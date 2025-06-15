@@ -1,13 +1,10 @@
 use crate::{
-    file::File,
+    dir::FileSystemAccess,
     handlers::*,
     http::{ClientError, Method, Request, ServerError},
     Result,
 };
-use std::{
-    io::{BufReader, Read, Write},
-    path::PathBuf,
-};
+use std::io::{BufReader, Read, Write};
 
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub enum Route {
@@ -64,31 +61,37 @@ impl From<&String> for Route {
 }
 
 #[derive(Debug)]
-pub struct Router {
-    dir: PathBuf,
+pub struct Router<T>
+where
+    T: FileSystemAccess,
+{
+    dir: T,
 }
 
-impl Router {
-    pub fn new(dir: PathBuf) -> Self {
+impl<T> Router<T>
+where
+    T: FileSystemAccess,
+{
+    pub fn new(dir: T) -> Self
+    where
+        T: FileSystemAccess,
+    {
         Router { dir }
     }
 
-    pub fn route<'a, T>(&self, stream: &'a T) -> Result<()>
+    pub fn route<'a, U>(&self, stream: &'a U) -> Result<()>
     where
-        &'a T: Write + Read,
+        &'a U: Write + Read,
     {
         let mut s = stream;
 
         let mut req_buffer = BufReader::new(s);
         let req = Request::try_from(&mut req_buffer)?;
-        let mut arg: HandlerArg<'_, &T, File> = HandlerArg::new(&req, &mut s, None);
+        let arg: HandlerArg<'_, &U, T> = HandlerArg::new(&req, &mut s, &self.dir);
 
         if let Err(e) = match Operation::from(&req) {
             Operation::GetEcho => EchoHandler::handle(arg),
-            Operation::GetFileContents | Operation::PostFileContents => {
-                arg.file = Some(File::new(self.dir.to_owned()));
-                FileHandler::handle(arg)
-            }
+            Operation::GetFileContents | Operation::PostFileContents => FileHandler::handle(arg),
             Operation::GetUserAgent => UserAgentHandler::handle(arg),
             Operation::GetEmpty => EmptyHandler::handle(arg),
             Operation::Unsupported => ErrorHandler::handle(ErrorHandlerArg::new(

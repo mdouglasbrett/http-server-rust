@@ -1,4 +1,5 @@
 use super::ThreadPool;
+use crate::dir::Dir;
 use crate::router::Router;
 use crate::{Config, Result};
 use std::net::TcpListener;
@@ -12,16 +13,16 @@ use log::{error, info};
 
 pub struct Server {
     listener: TcpListener,
-    router: Arc<Router>,
+    router: Arc<Router<Dir>>,
     thread_pool: ThreadPool,
     running: Arc<AtomicBool>,
 }
 
 impl Server {
-    pub fn try_new(config: &Config) -> Result<Self> {
+    pub fn try_new(config: &Config) -> Result<Server> {
         let listener = TcpListener::bind(&config.address)?;
         listener.set_nonblocking(true)?;
-        let router = Arc::new(Router::new(config.directory.clone()));
+        let router: Arc<Router<Dir>> = Arc::new(Router::new(config.directory.clone()));
         let thread_pool = ThreadPool::new(8);
         let running = Arc::new(AtomicBool::new(true));
         Ok(Self {
@@ -44,7 +45,7 @@ impl Server {
             match self.listener.accept() {
                 Ok((stream, addr)) => {
                     info!("Connection from: {}", addr);
-                    let router = Arc::clone(&self.router);
+                    let router: Arc<Router<Dir>> = Arc::clone(&self.router);
                     self.thread_pool.execute(move || {
                         if let Err(e) = router.route(&stream) {
                             error!("Error handling request, {}", e);

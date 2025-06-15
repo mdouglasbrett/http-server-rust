@@ -66,7 +66,6 @@ impl Display for StatusCode {
     }
 }
 
-
 // I can't just use an .into() on these, because of the _ in the from.
 // I would have to implement TryFrom and then account for the Error. I am on the fence about
 // this...

@@ -1,5 +1,5 @@
 use super::{Encoding, Headers, MimeType, StatusCode};
-use crate::{Result, constants::HTTP_VERSION};
+use crate::{constants::HTTP_VERSION, Result};
 use flate2::{write::GzEncoder, Compression};
 use std::io::Write;
 
