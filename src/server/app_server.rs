@@ -22,6 +22,8 @@ impl Server {
     pub fn try_new(config: &Config) -> Result<Server> {
         let listener = TcpListener::bind(&config.address)?;
         listener.set_nonblocking(true)?;
+        // I feel like trying to get rid of this clone would be overkill...
+        // Clippy isn't annoyed with me about this
         let router: Arc<Router<Dir>> = Arc::new(Router::new(config.directory.clone()));
         let thread_pool = ThreadPool::new(8);
         let running = Arc::new(AtomicBool::new(true));
