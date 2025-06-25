@@ -71,9 +71,7 @@ impl Server {
             }
         }
 
-        // TODO: do I want to make sure the thread pool is dropped first?
-        // Look at the ordering here
-        info!("Shutting down server...");
+        info!("Shutting down server");
         Ok(())
     }
 }

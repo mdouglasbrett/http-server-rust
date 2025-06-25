@@ -9,7 +9,25 @@ use crate::{
 use std::io::Write;
 
 #[derive(Debug)]
-pub struct HandlerArg<'a, T, U>
+pub struct HandlerArg<'a, T>
+where
+    T: Write,
+{
+    pub req: &'a Request,
+    pub stream: &'a mut T,
+}
+
+impl<'a, T> HandlerArg<'a, T>
+where
+    T: Write,
+{
+    pub fn new(req: &'a Request, stream: &'a mut T) -> HandlerArg<'a, T> {
+        HandlerArg { req, stream }
+    }
+}
+
+#[derive(Debug)]
+pub struct FileHandlerArg<'a, T, U>
 where
     T: Write,
     U: FileSystemAccess,
@@ -19,13 +37,13 @@ where
     pub target_dir: &'a U,
 }
 
-impl<'a, T, U> HandlerArg<'a, T, U>
+impl<'a, T, U> FileHandlerArg<'a, T, U>
 where
     T: Write,
     U: FileSystemAccess,
 {
-    pub fn new(req: &'a Request, stream: &'a mut T, target_dir: &'a U) -> HandlerArg<'a, T, U> {
-        HandlerArg {
+    pub fn new(req: &'a Request, stream: &'a mut T, target_dir: &'a U) -> FileHandlerArg<'a, T, U> {
+        FileHandlerArg {
             req,
             stream,
             target_dir,
@@ -59,17 +77,15 @@ pub struct NotFoundHandler;
 pub struct ErrorHandler;
 
 pub trait Handler {
-    fn handle<T, U>(r: HandlerArg<T, U>) -> Result<()>
+    fn handle<T>(r: HandlerArg<T>) -> Result<()>
     where
-        T: Write,
-        U: FileSystemAccess;
+        T: Write;
 }
 
 impl Handler for EchoHandler {
-    fn handle<T, U>(r: HandlerArg<T, U>) -> Result<()>
+    fn handle<T>(r: HandlerArg<T>) -> Result<()>
     where
         T: Write,
-        U: FileSystemAccess,
     {
         let body = r.req.body.as_slice();
         let resp = Response::builder()
@@ -83,10 +99,9 @@ impl Handler for EchoHandler {
 }
 
 impl Handler for EmptyHandler {
-    fn handle<T, U>(r: HandlerArg<T, U>) -> Result<()>
+    fn handle<T>(r: HandlerArg<T>) -> Result<()>
     where
         T: Write,
-        U: FileSystemAccess,
     {
         let resp = Response::ok()?;
         r.stream.write_all(&resp.as_bytes())?;
@@ -94,8 +109,38 @@ impl Handler for EmptyHandler {
     }
 }
 
-impl Handler for FileHandler {
-    fn handle<T, U>(r: HandlerArg<T, U>) -> Result<()>
+impl Handler for UserAgentHandler {
+    fn handle<T>(r: HandlerArg<T>) -> Result<()>
+    where
+        T: Write,
+    {
+        let b = r
+            .req
+            .get_header(Headers::UserAgent)
+            .map(|b| b.as_bytes().to_owned());
+        let resp = Response::builder()
+            .body(b)
+            .encoding(r.req.get_header(Headers::ContentEncoding))
+            .mime_type(MimeType::PlainText)
+            .build()?;
+        r.stream.write_all(&resp.as_bytes())?;
+        Ok(())
+    }
+}
+
+impl Handler for NotFoundHandler {
+    fn handle<T>(r: HandlerArg<T>) -> Result<()>
+    where
+        T: Write,
+    {
+        let resp = Response::not_found()?;
+        r.stream.write_all(&resp.as_bytes())?;
+        Ok(())
+    }
+}
+
+impl FileHandler {
+    pub fn handle<T, U>(r: FileHandlerArg<T, U>) -> Result<()>
     where
         T: Write,
         U: FileSystemAccess,
@@ -122,38 +167,6 @@ impl Handler for FileHandler {
             }
             _ => return Err(ServerError::Internal.into()),
         }
-        Ok(())
-    }
-}
-
-impl Handler for UserAgentHandler {
-    fn handle<T, U>(r: HandlerArg<T, U>) -> Result<()>
-    where
-        T: Write,
-        U: FileSystemAccess,
-    {
-        let b = r
-            .req
-            .get_header(Headers::UserAgent)
-            .map(|b| b.as_bytes().to_owned());
-        let resp = Response::builder()
-            .body(b)
-            .encoding(r.req.get_header(Headers::ContentEncoding))
-            .mime_type(MimeType::PlainText)
-            .build()?;
-        r.stream.write_all(&resp.as_bytes())?;
-        Ok(())
-    }
-}
-
-impl Handler for NotFoundHandler {
-    fn handle<T, U>(r: HandlerArg<T, U>) -> Result<()>
-    where
-        T: Write,
-        U: FileSystemAccess,
-    {
-        let resp = Response::not_found()?;
-        r.stream.write_all(&resp.as_bytes())?;
         Ok(())
     }
 }

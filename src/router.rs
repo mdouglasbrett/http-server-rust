@@ -87,11 +87,14 @@ where
 
         let mut req_buffer = BufReader::new(s);
         let req = Request::try_from(&mut req_buffer)?;
-        let arg: HandlerArg<'_, &U, T> = HandlerArg::new(&req, &mut s, &self.dir);
+        let arg: HandlerArg<'_, &U> = HandlerArg::new(&req, &mut s);
 
         if let Err(e) = match Operation::from(&req) {
             Operation::GetEcho => EchoHandler::handle(arg),
-            Operation::GetFileContents | Operation::PostFileContents => FileHandler::handle(arg),
+            Operation::GetFileContents | Operation::PostFileContents => {
+                let arg = FileHandlerArg::new(&req, &mut s, &self.dir);
+                FileHandler::handle(arg)
+            }
             Operation::GetUserAgent => UserAgentHandler::handle(arg),
             Operation::GetEmpty => EmptyHandler::handle(arg),
             Operation::Unsupported => ErrorHandler::handle(ErrorHandlerArg::new(
