@@ -204,9 +204,26 @@ impl ErrorHandler {
 mod tests {
 
     mod handlers {
+        use std::io::BufReader;
+
+        use crate::{handlers::*, http::Request};
 
         #[test]
-        fn handles_echo() {}
+        fn handles_echo() {
+            // TODO: some fixtures?
+            let mut buf = BufReader::new(b"GET /echo/hello HTTP 1.1\r\n\r\n".as_slice());
+            let req = Request::try_from(&mut buf).unwrap();
+            print!("{:?}", req);
+            let mut stream = Vec::new();
+            let arg = HandlerArg::new(&req, &mut stream);
+            let _ = EchoHandler::handle(arg);
+            let expected = Response::builder()
+                .status_code(StatusCode::Ok)
+                .body(Some(String::from("hello").into_bytes()))
+                .mime_type(MimeType::PlainText)
+                .build().unwrap();
+            assert_eq!(&expected.as_bytes(), &stream);
+        }
 
         #[test]
         fn handles_user_agent() {}
