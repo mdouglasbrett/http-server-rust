@@ -212,6 +212,7 @@ mod tests {
         fn handles_echo() {
             // TODO: some fixtures?
             let mut buf = BufReader::new(b"GET /echo/hello HTTP 1.1\r\n\r\n".as_slice());
+            // TODO: this is sort of pointless, just write out the request?
             let req = Request::try_from(&mut buf).unwrap();
             print!("{:?}", req);
             let mut stream = Vec::new();
