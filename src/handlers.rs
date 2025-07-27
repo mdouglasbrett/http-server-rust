@@ -204,17 +204,21 @@ impl ErrorHandler {
 mod tests {
 
     mod handlers {
-        use std::io::BufReader;
+        use std::collections::HashMap;
 
-        use crate::{handlers::*, http::Request};
+        use crate::{handlers::*, http::Request, router::Route};
 
         #[test]
         fn handles_echo() {
             // TODO: some fixtures?
-            let mut buf = BufReader::new(b"GET /echo/hello HTTP 1.1\r\n\r\n".as_slice());
-            // TODO: this is sort of pointless, just write out the request?
-            let req = Request::try_from(&mut buf).unwrap();
-            print!("{:?}", req);
+            let req = Request {
+                method: Method::Get,
+                route: Route::Echo,
+                headers: HashMap::new(),
+                body: b"hello".to_vec(),
+                path: "/echo/hello".to_owned(),
+                path_parts: vec!["echo".to_owned(), "hello".to_owned()],
+            };
             let mut stream = Vec::new();
             let arg = HandlerArg::new(&req, &mut stream);
             let _ = EchoHandler::handle(arg);
@@ -222,15 +226,57 @@ mod tests {
                 .status_code(StatusCode::Ok)
                 .body(Some(String::from("hello").into_bytes()))
                 .mime_type(MimeType::PlainText)
-                .build().unwrap();
+                .build()
+                .unwrap();
             assert_eq!(&expected.as_bytes(), &stream);
         }
 
         #[test]
-        fn handles_user_agent() {}
+        fn handles_user_agent() {
+            // TODO: some fixtures?
+            let req = Request {
+                method: Method::Get,
+                route: Route::UserAgent,
+                headers: HashMap::from([(Headers::UserAgent, "Test-UA".to_owned())]),
+                body: b"Test-UA".to_vec(),
+                path: "/user-agent".to_owned(),
+                path_parts: vec!["user-agent".to_owned()],
+            };
+            let mut stream = Vec::new();
+            let arg = HandlerArg::new(&req, &mut stream);
+            let _ = UserAgentHandler::handle(arg);
+            let expected = Response::builder()
+                .status_code(StatusCode::Ok)
+                .body(Some(String::from("Test-UA").into_bytes()))
+                .mime_type(MimeType::PlainText)
+                .build()
+                .unwrap();
+            assert_eq!(&expected.as_bytes(), &stream);
+        }
 
         #[test]
-        fn handles_empty() {}
+        fn handles_empty() {
+            // TODO: some fixtures?
+            let req = Request {
+                method: Method::Get,
+                route: Route::Empty,
+                headers: HashMap::new(),
+                body: Vec::new(),
+                path: "/".to_owned(),
+                path_parts: vec!["/".to_owned()],
+            };
+            let mut stream = Vec::new();
+            let arg = HandlerArg::new(&req, &mut stream);
+            let _ = EmptyHandler::handle(arg);
+            let expected = Response::builder()
+                .status_code(StatusCode::Ok)
+                .body(None)
+                // TODO: do we care about MimeTypes on empty request responses?
+                .mime_type(MimeType::PlainText)
+                .build()
+                .unwrap();
+            assert_eq!(&expected.as_bytes(), &stream);
+        }
 
         #[test]
         fn handles_read_file() {}
