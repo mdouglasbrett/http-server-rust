@@ -224,7 +224,7 @@ mod tests {
             let _ = EchoHandler::handle(arg);
             let expected = Response::builder()
                 .status_code(StatusCode::Ok)
-                .body(Some(String::from("hello").into_bytes()))
+                .body(Some(b"hello".to_vec()))
                 .mime_type(MimeType::PlainText)
                 .build()
                 .unwrap();
@@ -247,7 +247,7 @@ mod tests {
             let _ = UserAgentHandler::handle(arg);
             let expected = Response::builder()
                 .status_code(StatusCode::Ok)
-                .body(Some(String::from("Test-UA").into_bytes()))
+                .body(Some(b"Test-UA".to_vec()))
                 .mime_type(MimeType::PlainText)
                 .build()
                 .unwrap();
@@ -279,7 +279,47 @@ mod tests {
         }
 
         #[test]
-        fn handles_read_file() {}
+        fn handles_read_file() {
+            use crate::dir::FileSystemAccess;
+
+            // TODO: extract this as fixture
+            struct MockDir;
+
+            impl FileSystemAccess for MockDir {
+                fn try_read(&self, src: &str) -> Result<Vec<u8>> {
+                    let _ = src;
+                    Ok(b"Hi!".to_vec())
+                }
+                fn try_write(&self, _src: &str, _d: &[u8]) -> Result<()> {
+                    Ok(())
+                }
+                fn try_create(&self) -> Result<()> {
+                    Ok(())
+                }
+                fn check_dir_exists(&self) -> bool {
+                    true
+                }
+            }
+            let req = Request {
+                method: Method::Get,
+                route: Route::Files,
+                headers: HashMap::new(),
+                body: Vec::new(),
+                path: "/files/test".to_owned(),
+                path_parts: vec!["files".to_owned(), "test".to_owned()],
+            };
+            let mut stream = Vec::new();
+            let target_dir = MockDir {};
+            let arg = FileHandlerArg::new(&req, &mut stream, &target_dir);
+            let _ = FileHandler::handle(arg);
+            let expected = Response::builder()
+                .status_code(StatusCode::Ok)
+                .mime_type(MimeType::OctetStream)
+                .body(Some(b"Hi!".to_vec()))
+                .build()
+                .unwrap();
+            assert_eq!(&expected.as_bytes(), &stream);
+        }
 
         #[test]
         fn handles_write_file() {}
