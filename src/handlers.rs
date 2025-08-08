@@ -162,6 +162,7 @@ impl FileHandler {
             }
             Method::Post => {
                 r.target_dir.try_write(src, &r.req.body)?;
+                // TODO: it's only created if it's created, right?
                 let resp = Response::created()?;
                 r.stream.write_all(&resp.as_bytes())?;
             }
@@ -206,7 +207,26 @@ mod tests {
     mod handlers {
         use std::collections::HashMap;
 
+        use crate::dir::FileSystemAccess;
         use crate::{handlers::*, http::Request, router::Route};
+
+        struct MockDir;
+
+        impl FileSystemAccess for MockDir {
+            fn try_read(&self, src: &str) -> Result<Vec<u8>> {
+                let _ = src;
+                Ok(b"Hi!".to_vec())
+            }
+            fn try_write(&self, _src: &str, _d: &[u8]) -> Result<()> {
+                Ok(())
+            }
+            fn try_create(&self) -> Result<()> {
+                Ok(())
+            }
+            fn check_dir_exists(&self) -> bool {
+                true
+            }
+        }
 
         #[test]
         fn handles_echo() {
@@ -280,26 +300,6 @@ mod tests {
 
         #[test]
         fn handles_read_file() {
-            use crate::dir::FileSystemAccess;
-
-            // TODO: extract this as fixture
-            struct MockDir;
-
-            impl FileSystemAccess for MockDir {
-                fn try_read(&self, src: &str) -> Result<Vec<u8>> {
-                    let _ = src;
-                    Ok(b"Hi!".to_vec())
-                }
-                fn try_write(&self, _src: &str, _d: &[u8]) -> Result<()> {
-                    Ok(())
-                }
-                fn try_create(&self) -> Result<()> {
-                    Ok(())
-                }
-                fn check_dir_exists(&self) -> bool {
-                    true
-                }
-            }
             let req = Request {
                 method: Method::Get,
                 route: Route::Files,
@@ -322,7 +322,26 @@ mod tests {
         }
 
         #[test]
-        fn handles_write_file() {}
+        fn handles_write_file() {
+            let req = Request {
+                method: Method::Post,
+                route: Route::Files,
+                headers: HashMap::new(),
+                body: b"Hi!".to_vec(),
+                path: "/files/test".to_owned(),
+                path_parts: vec!["files".to_owned(), "test".to_owned()],
+            };
+            let mut stream = Vec::new();
+            let target_dir = MockDir {};
+            let arg = FileHandlerArg::new(&req, &mut stream, &target_dir);
+            let _ = FileHandler::handle(arg);
+            let expected = Response::builder()
+                .status_code(StatusCode::Created)
+                .mime_type(MimeType::PlainText)
+                .build()
+                .unwrap();
+            assert_eq!(&expected.as_bytes(), &stream);
+        }
 
         #[test]
         fn handles_error() {}
