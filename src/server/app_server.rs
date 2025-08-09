@@ -25,6 +25,7 @@ impl Server {
         // I feel like trying to get rid of this clone would be overkill...
         // Clippy isn't annoyed with me about this
         let router: Arc<Router<Dir>> = Arc::new(Router::new(config.directory.clone()));
+        // TODO: put this in config?
         let thread_pool = ThreadPool::new(8);
         let running = Arc::new(AtomicBool::new(true));
         Ok(Self {
