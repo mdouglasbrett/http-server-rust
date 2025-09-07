@@ -80,7 +80,7 @@ impl<R: Read> TryFrom<&mut BufReader<R>> for Request {
                 .entry(key)
                 // in-place mutation
                 .and_modify(|val| {
-                    *val = format!("{},{}", val, concat_parts);
+                    *val = format!("{val},{concat_parts}");
                 })
                 .or_insert(concat_parts.to_owned());
         }

@@ -48,7 +48,7 @@ impl Error for AppError {}
 
 impl Display for AppError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::result::Result<(), FmtErr> {
-        write!(f, "{:?}", self)
+        write!(f, "{self:?}")
     }
 }
 

@@ -20,7 +20,7 @@ impl Config {
                 Short('t') | Long("target_dir") => {
                     if let Ok(val) = parser.value() {
                         if let Ok(parsed_val) = val.parse::<String>() {
-                            let dir = Dir::new(&format!("{}{}", TARGET_DIR, parsed_val));
+                            let dir = Dir::new(&format!("{TARGET_DIR}{parsed_val}"));
                             dir.try_create()?;
                             config.directory = dir;
                         }
