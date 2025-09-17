@@ -371,7 +371,14 @@ mod tests {
                 err: AppError::Server(ServerError::NotImplemented),
             };
             let _ = ErrorHandler::handle(arg);
-            assert_eq!(stream, Response::builder().status_code(StatusCode::NotImplemented).build().unwrap().as_bytes());
+            assert_eq!(
+                stream,
+                Response::builder()
+                    .status_code(StatusCode::NotImplemented)
+                    .build()
+                    .unwrap()
+                    .as_bytes()
+            );
         }
         #[test]
         fn handles_generic_server_error() {
