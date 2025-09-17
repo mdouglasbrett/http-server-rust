@@ -344,6 +344,44 @@ mod tests {
         }
 
         #[test]
-        fn handles_error() {}
+        fn handles_not_found_error() {
+            let mut stream = Vec::new();
+            let arg = ErrorHandlerArg {
+                stream: &mut stream,
+                err: AppError::Client(ClientError::NotFound),
+            };
+            let _ = ErrorHandler::handle(arg);
+            assert_eq!(stream, Response::not_found().unwrap().as_bytes());
+        }
+        #[test]
+        fn handles_bad_request_error() {
+            let mut stream = Vec::new();
+            let arg = ErrorHandlerArg {
+                stream: &mut stream,
+                err: AppError::Client(ClientError::BadRequest),
+            };
+            let _ = ErrorHandler::handle(arg);
+            assert_eq!(stream, Response::client_error().unwrap().as_bytes());
+        }
+        #[test]
+        fn handles_not_implemented_error() {
+            let mut stream = Vec::new();
+            let arg = ErrorHandlerArg {
+                stream: &mut stream,
+                err: AppError::Server(ServerError::NotImplemented),
+            };
+            let _ = ErrorHandler::handle(arg);
+            assert_eq!(stream, Response::builder().status_code(StatusCode::NotImplemented).build().unwrap().as_bytes());
+        }
+        #[test]
+        fn handles_generic_server_error() {
+            let mut stream = Vec::new();
+            let arg = ErrorHandlerArg {
+                stream: &mut stream,
+                err: AppError::Server(ServerError::Internal),
+            };
+            let _ = ErrorHandler::handle(arg);
+            assert_eq!(stream, Response::server_error().unwrap().as_bytes());
+        }
     }
 }
